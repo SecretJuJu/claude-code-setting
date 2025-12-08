@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Claude Code Language Rules Schema",
+  "description": "Schema for language-specific rules configuration",
+  "type": "object",
+  "required": ["language", "extensions"],
+  "properties": {
+    "language": {
+      "type": "string",
+      "description": "Language identifier (e.g., 'python', 'typescript')"
+    },
+    "extensions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "File extensions for this language (e.g., ['.py', '.pyw'])"
+    },
+    "excluded_extensions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Extensions to exclude (e.g., ['.d.ts'] for TypeScript)"
+    },
+    "excluded_paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Path patterns to exclude from checks (e.g., ['/test/', '/tests/'])"
+    },
+    "linting": {
+      "type": "object",
+      "properties": {
+        "tool": { "type": "string" },
+        "executable_paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Paths to search for linter executable"
+        },
+        "always_enforce_rules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rules that are always enforced"
+        },
+        "fallback_rules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rules used when no project config exists"
+        },
+        "line_length": { "type": "integer" },
+        "auto_fix": { "type": "boolean" },
+        "unsafe_fixes": { "type": "boolean" }
+      }
+    },
+    "formatting": {
+      "type": "object",
+      "properties": {
+        "tool": { "type": "string" },
+        "line_length": { "type": "integer" },
+        "auto_format": { "type": "boolean" }
+      }
+    },
+    "type_checking": {
+      "type": "object",
+      "properties": {
+        "tool": { "type": "string" },
+        "executable_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "forbidden_types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Types that are forbidden (e.g., ['any', 'Any'])"
+        },
+        "forbidden_patterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": { "type": "string" },
+              "description": { "type": "string" },
+              "suggestion": { "type": "string" }
+            }
+          }
+        },
+        "config_file": { "type": "string" },
+        "strict_mode": { "type": "boolean" }
+      }
+    },
+    "imports": {
+      "type": "object",
+      "properties": {
+        "allow_nested": { "type": "boolean" },
+        "type_checking_exceptions": { "type": "boolean" },
+        "warn_unused": { "type": "boolean" }
+      }
+    },
+    "comments": {
+      "type": "object",
+      "properties": {
+        "require_justification": { "type": "boolean" },
+        "allowed_prefixes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Comment prefixes that are always allowed (e.g., ['type:', 'noqa'])"
+        },
+        "bdd_keywords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "BDD keywords allowed in comments"
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "properties": {
+        "framework": { "type": "string" },
+        "comment_pattern": { "type": "string" },
+        "test_file_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "messages": {
+      "type": "object",
+      "description": "Custom error/warning messages",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

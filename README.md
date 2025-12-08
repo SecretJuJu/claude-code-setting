@@ -61,6 +61,11 @@ Hooks는 `uv run`으로 실행되며, 필요한 패키지는 자동으로 설치
 .
 ├── CLAUDE.md              # Global instructions & prompt engineering
 ├── settings.json          # Claude Code settings (hooks only)
+├── rules/                 # Language-specific rules (JSON)
+│   ├── schema.json        # JSON schema for rules
+│   ├── python.json        # Python linting, typing, comments rules
+│   ├── typescript.json    # TypeScript type checking rules
+│   └── load_rules.py      # Rules loader utility
 ├── commands/              # Custom slash commands
 │   ├── execute.md         # /execute - Task orchestrator
 │   └── planner.md         # /planner - Work plan generator
@@ -71,6 +76,28 @@ Hooks는 `uv run`으로 실행되며, 필요한 패키지는 자동으로 설치
 └── agents/                # Specialized agent definitions
     ├── executor.md        # Task executor agent
     └── plan-reviewer.md   # Plan review agent
+```
+
+## Language Rules
+
+`rules/` 디렉토리에서 언어별 규칙을 JSON으로 관리합니다. 새 언어 추가 시 `{language}.json` 파일만 생성하면 됩니다.
+
+**지원 언어:**
+- **Python**: ruff 린팅, `Any` 타입 금지, 주석 정책, nested import 금지
+- **TypeScript**: tsc 타입 체크, `any` 타입 금지
+
+**규칙 커스터마이징 예시:**
+```json
+{
+  "language": "python",
+  "linting": {
+    "always_enforce_rules": ["ANN001", "ANN201"],
+    "line_length": 120
+  },
+  "type_checking": {
+    "forbidden_types": ["Any"]
+  }
+}
 ```
 
 ## Workflow

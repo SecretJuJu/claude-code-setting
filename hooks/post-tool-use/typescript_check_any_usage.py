@@ -2,10 +2,6 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""
-TypeScript 'any' type usage detector hook for Claude Code.
-Detects usage of 'any' type in TypeScript files and provides feedback to Claude for correction.
-"""
 
 from __future__ import annotations
 
@@ -14,6 +10,24 @@ import re
 import sys
 from pathlib import Path
 from typing import Any, TypedDict
+
+RULES_DIR = Path(__file__).parent.parent.parent / "rules"
+
+
+def _load_typescript_rules() -> dict[str, Any]:
+    rules_file = RULES_DIR / "typescript.json"
+    if rules_file.exists():
+        try:
+            with open(rules_file, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+_TS_RULES = _load_typescript_rules()
+_TYPE_CONFIG = _TS_RULES.get("type_checking", {})
+_MESSAGES = _TS_RULES.get("messages", {})
 
 
 class EditOperation(TypedDict):
@@ -203,20 +217,20 @@ def build_error_message(issues: list[dict[str, Any]], file_path: str) -> str:
 
 
 def _is_valid_typescript_file(file_path: str) -> bool:
-    """Check if path is a valid TypeScript file."""
     if not file_path:
         return False
-    
-    valid_extensions = {".ts", ".tsx", ".mts", ".cts"}
+
+    valid_extensions = set(_TS_RULES.get("extensions", [".ts", ".tsx", ".mts", ".cts"]))
+    excluded_extensions = _TS_RULES.get("excluded_extensions", [".d.ts"])
     path = Path(file_path)
-    
+
     if path.suffix not in valid_extensions:
         return False
-    
-    # Skip declaration files as they may legitimately use 'any' for external APIs
-    if file_path.endswith(".d.ts"):
-        return False
-    
+
+    for excluded in excluded_extensions:
+        if file_path.endswith(excluded):
+            return False
+
     return True
 
 

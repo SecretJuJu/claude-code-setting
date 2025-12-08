@@ -1,0 +1,129 @@
+{
+  "$schema": "./schema.json",
+  "language": "python",
+  "extensions": [".py"],
+  "excluded_extensions": [".pyw"],
+  "excluded_paths": ["/hooks/", "/test/", "/tests/", "_test.py", "test_"],
+
+  "linting": {
+    "tool": "ruff",
+    "executable_paths": [".venv/bin/ruff", "venv/bin/ruff"],
+    "always_enforce_rules": [
+      "ASYNC",
+      "ANN001",
+      "ANN201",
+      "ANN202",
+      "ANN204",
+      "ANN205",
+      "ANN206",
+      "ANN401"
+    ],
+    "fallback_rules": [
+      "PLE",
+      "PLW",
+      "E",
+      "W",
+      "F",
+      "I",
+      "Q",
+      "UP",
+      "C4",
+      "PT"
+    ],
+    "line_length": 119,
+    "auto_fix": true,
+    "unsafe_fixes": true,
+    "exclude_from_autofix": ["F401"]
+  },
+
+  "formatting": {
+    "tool": "ruff",
+    "line_length": 119,
+    "auto_format": true
+  },
+
+  "type_checking": {
+    "tool": "pyright",
+    "executable_paths": [".venv/bin/pyright", "venv/bin/pyright"],
+    "config_file": "pyproject.toml",
+    "strict_mode": false,
+    "forbidden_types": ["Any"],
+    "forbidden_patterns": [
+      {
+        "pattern": "-> Any:",
+        "description": "Function returns 'Any' type",
+        "suggestion": "Replace '-> Any' with a specific return type"
+      },
+      {
+        "pattern": "-> Optional[Any]:",
+        "description": "Function returns Optional[Any]",
+        "suggestion": "Replace with specific optional type (e.g., Optional[str])"
+      },
+      {
+        "pattern": "-> Any | None:",
+        "description": "Function returns Any | None",
+        "suggestion": "Replace with specific type union (e.g., str | None)"
+      }
+    ]
+  },
+
+  "imports": {
+    "allow_nested": false,
+    "type_checking_exceptions": true,
+    "warn_unused": true,
+    "type_checking_block": "TYPE_CHECKING"
+  },
+
+  "comments": {
+    "require_justification": true,
+    "allowed_prefixes": [
+      "type:",
+      "noqa",
+      "pyright:",
+      "ruff:",
+      "mypy:",
+      "pylint:",
+      "flake8:",
+      "pyre:",
+      "pytype:"
+    ],
+    "bdd_keywords": [
+      "given",
+      "when",
+      "then",
+      "arrange",
+      "act",
+      "assert",
+      "when & then",
+      "when&then"
+    ],
+    "skip_extensions": [
+      "json",
+      "xml",
+      "yaml",
+      "yml",
+      "md",
+      "html",
+      "css",
+      "toml",
+      "ini",
+      "conf",
+      "config",
+      "sh"
+    ]
+  },
+
+  "testing": {
+    "framework": "pytest",
+    "comment_pattern": "#given, #when, #then",
+    "test_file_patterns": ["test_*.py", "*_test.py", "conftest.py"]
+  },
+
+  "messages": {
+    "any_return_error": "ANY RETURN TYPE DETECTED - Using '-> Any' as a return type hint is not allowed. All functions must have specific return type hints.",
+    "nested_import_error": "NESTED IMPORT DETECTED - Nested imports violate PEP 8. All imports must be at the top of the file.",
+    "unused_import_error": "UNUSED IMPORTS DETECTED - You have added import statements that are NOT being used. DELETE the unused import or ADD code that USES the import.",
+    "comment_detected": "COMMENT/DOCSTRING DETECTED - You need to justify this comment or remove it if unnecessary.",
+    "lint_error": "CRITICAL: DO NOT IGNORE THESE ERRORS! You MUST fix ALL lint errors. The code WILL NOT pass CI/CD until these are resolved."
+  }
+}
