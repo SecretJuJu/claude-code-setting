@@ -16,7 +16,24 @@ from typing import Any, TypedDict, cast
 
 from comment_parser import comment_parser
 
-BDD_KEYWORDS: set[str] = {
+RULES_DIR = Path(__file__).parent.parent.parent / "rules"
+
+
+def _load_python_rules() -> dict[str, Any]:
+    rules_file = RULES_DIR / "python.json"
+    if rules_file.exists():
+        try:
+            with open(rules_file, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+_PYTHON_RULES = _load_python_rules()
+_COMMENTS_CONFIG = _PYTHON_RULES.get("comments", {})
+
+BDD_KEYWORDS: set[str] = set(_COMMENTS_CONFIG.get("bdd_keywords", [
     "given",
     "when",
     "then",
@@ -25,8 +42,8 @@ BDD_KEYWORDS: set[str] = {
     "assert",
     "when & then",
     "when&then",
-}
-SKIP_EXTENSIONS: set[str] = {
+]))
+SKIP_EXTENSIONS: set[str] = set(_COMMENTS_CONFIG.get("skip_extensions", [
     "json",
     "xml",
     "yaml",
@@ -39,7 +56,7 @@ SKIP_EXTENSIONS: set[str] = {
     "conf",
     "config",
     "sh",
-}
+]))
 
 
 def main() -> None:
@@ -537,10 +554,9 @@ def is_bdd_comment(comment_text: str) -> bool:
 
 
 def is_python_type_comment(comment_text: str) -> bool:
-    """Check if comment is a Python type checker directive."""
     stripped: str = comment_text.strip().lower()
 
-    type_checker_prefixes = [
+    type_checker_prefixes = _COMMENTS_CONFIG.get("allowed_prefixes", [
         "type:",
         "noqa",
         "pyright:",
@@ -550,7 +566,7 @@ def is_python_type_comment(comment_text: str) -> bool:
         "flake8:",
         "pyre:",
         "pytype:",
-    ]
+    ])
 
     for prefix in type_checker_prefixes:
         if stripped.startswith(prefix):

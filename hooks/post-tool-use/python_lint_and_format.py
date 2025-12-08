@@ -17,8 +17,25 @@ from typing import Any, NotRequired, TypedDict
 
 import toml
 
-# Configuration constants
-ALWAYS_ENFORCE_RULES: list[str] = [
+RULES_DIR = Path(__file__).parent.parent.parent / "rules"
+
+
+def _load_python_rules() -> dict[str, Any]:
+    rules_file = RULES_DIR / "python.json"
+    if rules_file.exists():
+        try:
+            with open(rules_file, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+_PYTHON_RULES = _load_python_rules()
+_LINTING_CONFIG = _PYTHON_RULES.get("linting", {})
+
+
+ALWAYS_ENFORCE_RULES: list[str] = _LINTING_CONFIG.get("always_enforce_rules", [
     "ASYNC",
     "ANN001",
     "ANN201",
@@ -27,8 +44,8 @@ ALWAYS_ENFORCE_RULES: list[str] = [
     "ANN205",
     "ANN206",
     "ANN401",
-]
-FALLBACK_LINT_RULES: list[str] = [
+])
+FALLBACK_LINT_RULES: list[str] = _LINTING_CONFIG.get("fallback_rules", [
     "PLE",
     "PLW",
     "E",
@@ -39,9 +56,9 @@ FALLBACK_LINT_RULES: list[str] = [
     "UP",
     "C4",
     "PT",
-]
-FALLBACK_EXCLUDE_PATHS: list[str] = []
-FALLBACK_LINE_LENGTH: int = 119
+])
+FALLBACK_EXCLUDE_PATHS: list[str] = _PYTHON_RULES.get("excluded_paths", [])
+FALLBACK_LINE_LENGTH: int = _LINTING_CONFIG.get("line_length", 119)
 
 VENV_RUFF_PATHS: list[Path] = [
     Path(".venv/bin/ruff"),

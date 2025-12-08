@@ -13,6 +13,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypedDict
 
+RULES_DIR = Path(__file__).parent.parent.parent / "rules"
+
+
+def _load_typescript_rules() -> dict[str, Any]:
+    rules_file = RULES_DIR / "typescript.json"
+    if rules_file.exists():
+        try:
+            with open(rules_file, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
+_TS_RULES = _load_typescript_rules()
+_TYPE_CONFIG = _TS_RULES.get("type_checking", {})
+
 
 class EditOperation(TypedDict):
     old_string: str
@@ -107,15 +124,10 @@ def get_target_file_path(input_data: str) -> str | None:
 
 
 def find_tsc_executable() -> str | None:
-    """Find tsc executable in node_modules or system PATH.
-
-    Returns:
-        Path to tsc executable if found, None otherwise
-    """
-    local_paths = [
-        Path("node_modules/.bin/tsc"),
-        Path("node_modules/typescript/bin/tsc"),
-    ]
+    local_paths = [Path(p) for p in _TYPE_CONFIG.get("executable_paths", [
+        "node_modules/.bin/tsc",
+        "node_modules/typescript/bin/tsc",
+    ])]
 
     for path in local_paths:
         if path.exists():
@@ -282,18 +294,19 @@ def _build_error_message(results: TscResults) -> str:
 
 
 def _is_valid_typescript_file(file_path: str) -> bool:
-    """Check if path is a valid TypeScript file."""
     if not file_path:
         return False
 
-    valid_extensions = {".ts", ".tsx", ".mts", ".cts"}
+    valid_extensions = set(_TS_RULES.get("extensions", [".ts", ".tsx", ".mts", ".cts"]))
+    excluded_extensions = _TS_RULES.get("excluded_extensions", [".d.ts"])
     path = Path(file_path)
 
     if path.suffix not in valid_extensions:
         return False
 
-    if file_path.endswith(".d.ts"):
-        return False
+    for excluded in excluded_extensions:
+        if file_path.endswith(excluded):
+            return False
 
     return path.exists()
 

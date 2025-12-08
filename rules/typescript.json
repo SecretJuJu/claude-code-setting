@@ -1,0 +1,94 @@
+{
+  "$schema": "./schema.json",
+  "language": "typescript",
+  "extensions": [".ts", ".tsx", ".mts", ".cts"],
+  "excluded_extensions": [".d.ts"],
+  "excluded_paths": [],
+
+  "linting": {
+    "tool": "eslint",
+    "executable_paths": ["node_modules/.bin/eslint"],
+    "auto_fix": true
+  },
+
+  "formatting": {
+    "tool": "prettier",
+    "auto_format": true
+  },
+
+  "type_checking": {
+    "tool": "tsc",
+    "executable_paths": [
+      "node_modules/.bin/tsc",
+      "node_modules/typescript/bin/tsc"
+    ],
+    "config_file": "tsconfig.json",
+    "strict_mode": true,
+    "forbidden_types": ["any"],
+    "forbidden_patterns": [
+      {
+        "pattern": ":\\s*any\\b",
+        "description": "Direct 'any' type annotation",
+        "suggestion": "Use 'unknown' and narrow with type guards"
+      },
+      {
+        "pattern": "<any>",
+        "description": "Generic 'any' type parameter",
+        "suggestion": "Use specific generic type or 'unknown'"
+      },
+      {
+        "pattern": "as\\s+any\\b",
+        "description": "Type assertion to 'any'",
+        "suggestion": "Use proper type assertion or type guard"
+      },
+      {
+        "pattern": "Array<any>",
+        "description": "Array of 'any'",
+        "suggestion": "Use typed array like Array<string> or unknown[]"
+      },
+      {
+        "pattern": "Promise<any>",
+        "description": "Promise of 'any'",
+        "suggestion": "Use typed Promise like Promise<YourType>"
+      }
+    ],
+    "fallback_options": [
+      "--noEmit",
+      "--strict",
+      "--esModuleInterop",
+      "--skipLibCheck",
+      "--forceConsistentCasingInFileNames",
+      "--target", "ES2020",
+      "--module", "commonjs"
+    ]
+  },
+
+  "imports": {
+    "allow_nested": false,
+    "type_checking_exceptions": true,
+    "warn_unused": true
+  },
+
+  "comments": {
+    "require_justification": false,
+    "allowed_prefixes": ["@ts-ignore", "@ts-expect-error", "eslint-disable"]
+  },
+
+  "testing": {
+    "framework": "jest",
+    "comment_pattern": "#given, #when, #then",
+    "test_file_patterns": ["*.test.ts", "*.spec.ts", "**/__tests__/**"]
+  },
+
+  "messages": {
+    "any_type_error": "CRITICAL: 'any' type usage detected! You are STRICTLY PROHIBITED from using the 'any' type. Use 'unknown' and narrow with type guards, or use proper generic/specific types.",
+    "type_error": "TypeScript type errors detected! You MUST fix ALL type errors.",
+    "any_alternatives": [
+      "Use 'unknown' if the type is truly unknown, then use type guards",
+      "Use proper generic types (e.g., <T>, <T extends SomeType>)",
+      "Use union types (e.g., string | number | null)",
+      "Use specific interface or type definitions",
+      "Use utility types (Partial<T>, Record<K, V>, etc.)"
+    ]
+  }
+}
