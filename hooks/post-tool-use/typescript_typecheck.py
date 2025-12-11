@@ -183,7 +183,8 @@ def execute_tsc_typecheck(tsc_path: str, file_path: str) -> TscResults:
             str(file_path),
         ]
 
-    output, exit_code = run_tsc_command(tsc_path, cmd_args)
+    tsc_cwd = str(tsconfig_path.parent) if tsconfig_path else "."
+    output, exit_code = run_tsc_command(tsc_path, cmd_args, cwd=tsc_cwd)
 
     # Filter output to only show errors for the specific file
     if tsconfig_path and output:
@@ -226,16 +227,7 @@ def find_tsconfig(file_path: str) -> Path | None:
     return None
 
 
-def run_tsc_command(tsc_path: str, args: list[str]) -> tuple[str, int]:
-    """Run a tsc command and return output and exit code.
-
-    Args:
-        tsc_path: Path to tsc executable or command
-        args: Command line arguments for tsc
-
-    Returns:
-        Tuple of (combined_output, exit_code)
-    """
+def run_tsc_command(tsc_path: str, args: list[str], *, cwd: str = ".") -> tuple[str, int]:
     try:
         if tsc_path == "npx tsc":
             cmd = ["npx", "--no-install", "tsc"] + args
@@ -247,8 +239,8 @@ def run_tsc_command(tsc_path: str, args: list[str]) -> tuple[str, int]:
             check=False,
             capture_output=True,
             text=True,
-            cwd=".",
-            timeout=30,  # 30 second timeout for type checking
+            cwd=cwd,
+            timeout=30,
         )
         return result.stdout + result.stderr, result.returncode
     except subprocess.TimeoutExpired:
