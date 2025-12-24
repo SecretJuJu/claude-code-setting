@@ -14,9 +14,9 @@ argument-hint: <todo-list-path> [additional-request]
 
 Examples:
 
-- `/execute ai-todolist.json` - Execute all tasks in default todo list
+- `/execute ai-todolist.md` - Execute all tasks in default todo list
 - `/execute ./todos/project.json` - Execute tasks from specific path
-- `/execute ai-todolist.json "focus on tests"` - Execute with additional guidance
+- `/execute ai-todolist.md "focus on tests"` - Execute with additional guidance
 
 ## What this command does
 
@@ -32,14 +32,14 @@ You are a TASK ORCHESTRATION MANAGER who coordinates the executor agent to compl
 
 Parse $ARGUMENTS by splitting on spaces:
 
-- First argument: todo list file path (default: `ai-todolist.json` if not provided)
+- First argument: todo list file path (default: `ai-todolist.md` if not provided)
 - Remaining arguments: Additional context or requests (optional)
 
 ### EXECUTION WORKFLOW
 
 **1. Initial Setup**
 
-- Read `ai-todolist.json` (single source of truth)
+- Read `ai-todolist.md` (single source of truth)
 - Count total uncompleted tasks: count tasks where `status != "completed"`
 - Announce orchestration plan to user
 - Initialize accumulated wisdom container for knowledge transfer
@@ -73,7 +73,7 @@ Continue the following loop until all tasks are complete:
 **2.1 Check Completion Status**
 
    ```
-   Read ai-todolist.json → Check tasks[].status → Count "pending"/"in_progress" → If zero, STOP
+   Read ai-todolist.md → Check tasks[].status → Count "pending"/"in_progress" → If zero, STOP
    ```
 
 **2.1.1 Identify Parallel Task Groups**
@@ -105,7 +105,7 @@ Continue the following loop until all tasks are complete:
 
 **2.3 Prepare Comprehensive Context for Executor**
 
-- Read current state from `ai-todolist.json`
+- Read current state from `ai-todolist.md`
 - Read notepad.md (use `tail -n 200 notepad.md` if file is large)
 - Identify the specific uncompleted task checkbox to work on
 - Quote the exact task text from the todo list verbatim
@@ -197,7 +197,7 @@ Invoke the @agent-executor with structured guidance:
    - Successful strategies that worked and why they worked
    - Unresolved questions and mysteries from previous work]
 
-   TODOLIST PATH: @{given todo list path} (like @ai-todolist.json)
+   TODOLIST PATH: @{given todo list path} (like @ai-todolist.md)
    NOTEPAD PATH: @{notepath path} (like @notepad.md)
 
    GOAL:
@@ -210,7 +210,7 @@ Invoke the @agent-executor with structured guidance:
    EXECUTION REQUIREMENTS - INFINITE LOOP UNTIL SUCCESS:
 
    DO {
-     1. Read @ai-todolist.json and @notepad.md file to understand full context
+     1. Read @ai-todolist.md and @notepad.md file to understand full context
      2. Review all inherited wisdom from previous executors carefully,
      3. Implement the COMPLETE solution:
         - Follow existing code patterns discovered by previous executors
@@ -605,7 +605,7 @@ Use clear status updates:
 
 1. NEVER directly modify the todo list - only executor should
 2. ALWAYS read and quote the exact task text from todo list
-3. ALWAYS instruct executor to read ai-todolist.json first
+3. ALWAYS instruct executor to read ai-todolist.md first
 4. ALWAYS tell executor to use TodoWrite() for their own planning
 5. ALWAYS verify task completion after each executor invocation
 6. CONTINUE until all tasks complete or critical failure

@@ -14,7 +14,7 @@ argument-hint: <work-description> [--edit] [--review] [--parallelable]
 
 ### Options
 
-- **--edit**: Edit existing `./ai-todolist.json`
+- **--edit**: Edit existing `./ai-todolist.md`
 - **--review**: Get review from plan-reviewer agent after creation
 - **--parallelable**: Mark independent tasks for parallel execution (use conservatively)
   - Requirements: zero dependencies, different files, no shared state, independently testable
@@ -22,7 +22,7 @@ argument-hint: <work-description> [--edit] [--review] [--parallelable]
 
 ## What this command does
 
-Analyzes requirements → gathers implementation info → generates actionable plan → saves to `./ai-todolist.json` (prettified)
+Analyzes requirements → gathers implementation info → generates actionable plan → saves to `./ai-todolist.md`
 
 ## Core Principles
 
@@ -30,14 +30,14 @@ Analyzes requirements → gathers implementation info → generates actionable p
 - **Code Citations**: Include relevant code and patterns found
 - **Balanced Detail**: Skip obvious explanations
 - **Practical Focus**: Implementation over theory
-- **JSON Only**: Single source of truth, prettified for human readability
+- **Markdown Format**: Human-readable, no escape overhead, native code block support
 
 ---
 
 ## Phase 1: Analysis & Information Gathering
 
 ### 1.1 Option Processing
-- `--edit`: Read existing `./ai-todolist.json` first
+- `--edit`: Read existing `./ai-todolist.md` first
 - `--review`: Mark for review after creation
 - Default: New plan creation
 
@@ -74,202 +74,148 @@ Analyzes requirements → gathers implementation info → generates actionable p
 
 ---
 
-## Phase 2: Plan Creation (JSON Only)
+## Phase 2: Plan Creation (Markdown Format)
 
-### 2.1 JSON Schema Definition
+### 2.1 Markdown Template Structure
 
-**CRITICAL: Save as prettified JSON (2-space indent) for human readability**
+```markdown
+---
+original_request: "사용자 최초 요청 그대로"
+goals:
+  - 목표 1
+  - 목표 2
+background: "작업 배경 설명"
+execution_started: false
+all_goals_accomplished: false
+parallel_requested: false
+current_task: null
+created_at: 2025-12-08T10:00:00Z
+updated_at: 2025-12-08T10:00:00Z
+---
 
-```json
-{
-  "meta": {
-    "original_request": "사용자 최초 요청 그대로",
-    "additional_requests": ["추가 요청 1", "추가 요청 2"],
-    "goals": ["목표 1", "목표 2"],
-    "background": "작업 배경 설명",
-    "execution_started": false,
-    "all_goals_accomplished": false,
-    "parallel_requested": false,
-    "current_task": null,
-    "created_at": "2025-12-08T10:00:00Z",
-    "updated_at": "2025-12-08T10:00:00Z"
-  },
-  "context": {
-    "prerequisites": ["사전 지식 1", "사전 지식 2"],
-    "file_structure": "작업에 영향받는 파일들과 역할 설명",
-    "reference_files": [
-      {
-        "path": "src/example.py",
-        "role": "파일 역할",
-        "focus": "참고할 부분",
-        "code_hint": "class Example: ..."
-      }
-    ],
-    "conventions": {
-      "commit_style": "feat: description",
-      "code_patterns": ["패턴 1", "패턴 2"],
-      "referenced_docs": [
-        {"path": "docs/api.md", "reason": "API 패턴 확인", "summary": "REST 규칙"}
-      ],
-      "skipped_docs": ["docs/unrelated.md"]
-    }
-  },
-  "implementation": {
-    "prd_mermaid": "graph TD; A-->B;",
-    "structure_mermaid": "graph TD; Module1-->Module2;",
-    "details": "구현 세부사항 및 주의사항"
-  },
-  "tasks": [
-    {
-      "id": 1,
-      "title": "User 모델 수정 및 테스트",
-      "status": "pending",
-      "parallel_group": null,
-      "context": {
-        "current_state": "현재 상태",
-        "target_state": "목표 상태",
-        "reference_code": "참고할 코드 스니펫"
-      },
-      "subtasks": [
-        {
-          "id": "1.1",
-          "type": "implement",
-          "description": "UserModel에 field 추가",
-          "target": "src/models/user.py",
-          "done": false
-        },
-        {
-          "id": "1.2",
-          "type": "test",
-          "description": "테스트 작성",
-          "target": "tests/test_user.py",
-          "done": false
-        },
-        {
-          "id": "1.3",
-          "type": "verify",
-          "description": "pytest 실행",
-          "command": "pytest -xvs tests/test_user.py",
-          "done": false
-        },
-        {
-          "id": "1.4",
-          "type": "lint",
-          "description": "린트 체크",
-          "command": "ruff check src/models/user.py",
-          "done": false
-        },
-        {
-          "id": "1.5",
-          "type": "commit",
-          "description": "커밋",
-          "done": false
-        }
-      ],
-      "acceptance_criteria": [
-        {
-          "id": "1.ac.1",
-          "description": "코드가 컨벤션대로 작성됨",
-          "verification_method": "기존 코드베이스 스타일과 비교",
-          "verified": false
-        },
-        {
-          "id": "1.ac.2",
-          "description": "테스트 통과",
-          "verification_method": "pytest 실행 결과 확인",
-          "verified": false
-        },
-        {
-          "id": "1.ac.3",
-          "description": "커밋 완료",
-          "verification_method": "git log 확인",
-          "verified": false
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "title": "병렬 작업 예시",
-      "status": "pending",
-      "parallel_group": 2,
-      "parallel_reason": "기능 3과 완전히 독립적, 다른 파일 수정, 의존성 없음",
-      "context": {},
-      "subtasks": [],
-      "acceptance_criteria": []
-    }
-  ],
-  "final_checklist": [
-    {
-      "id": 1,
-      "description": "기능 동작 검증",
-      "verification_method": "직접 기능 호출하여 테스트",
-      "checked": false
-    },
-    {
-      "id": 2,
-      "description": "컨벤션 준수 확인",
-      "verification_method": "프로젝트 컨벤션 문서와 비교",
-      "checked": false
-    },
-    {
-      "id": 3,
-      "description": "기존 기능 영향 없음 확인",
-      "verification_method": "관련 테스트 전체 실행",
-      "checked": false
-    }
-  ]
-}
+# Work Plan: [작업 제목]
+
+## Additional Requests
+- 추가 요청 1
+- 추가 요청 2
+
+---
+
+## Context
+
+### Prerequisites
+- 사전 지식 1
+- 사전 지식 2
+
+### File Structure
+작업에 영향받는 파일들과 역할 설명
+
+### Reference Files
+
+#### `src/example.py`
+- **Role**: 파일 역할
+- **Focus**: 참고할 부분
+
+```python
+class Example:
+    def method(self):
+        pass
 ```
 
-### 2.2 JSON Writing Rules (CRITICAL)
+### Conventions
 
-⚠️ **JSON 작성 시 반드시 주의할 사항**:
+| 항목 | 내용 |
+|------|------|
+| Commit Style | `feat: description` |
+| Code Patterns | 패턴 1, 패턴 2 |
 
-1. **문자열 내 따옴표 escape**:
-   ```json
-   // ❌ BAD
-   {"description": "Use "quotes" here"}
-   
-   // ✅ GOOD
-   {"description": "Use \"quotes\" here"}
-   ```
+**Referenced Docs:**
+- `docs/api.md` - API 패턴 확인 (REST 규칙)
 
-2. **백슬래시 escape**:
-   ```json
-   // ❌ BAD
-   {"path": "C:\Users\name"}
-   
-   // ✅ GOOD
-   {"path": "C:\\Users\\name"}
-   ```
+**Skipped Docs:** `docs/unrelated.md`
 
-3. **줄바꿈 escape**:
-   ```json
-   // ❌ BAD (actual newline in string)
-   {"description": "line1
-   line2"}
-   
-   // ✅ GOOD
-   {"description": "line1\nline2"}
-   ```
+---
 
-4. **코드 스니펫 포함 시**:
-   ```json
-   // ❌ BAD
-   {"code": "def foo(): return "bar""}
-   
-   // ✅ GOOD
-   {"code": "def foo(): return \"bar\""}
-   ```
+## Implementation
 
-5. **특수문자 목록**:
-   | 문자 | Escape |
-   |------|--------|
-   | `"` | `\"` |
-   | `\` | `\\` |
-   | newline | `\n` |
-   | tab | `\t` |
-   | carriage return | `\r` |
+### PRD Flow
+```mermaid
+graph TD
+    A[시작] --> B[처리]
+    B --> C[완료]
+```
+
+### Structure
+```mermaid
+graph TD
+    Module1 --> Module2
+```
+
+### Details
+구현 세부사항 및 주의사항
+
+---
+
+## Tasks
+
+### Task 1: User 모델 수정 및 테스트
+**Status:** `pending` | **Parallel Group:** -
+
+#### Context
+- **Current State**: 현재 상태
+- **Target State**: 목표 상태
+
+#### Reference Code
+```python
+# 참고할 코드 스니펫
+def existing_pattern():
+    pass
+```
+
+#### Subtasks
+- [ ] **1.1** [implement] UserModel에 field 추가 → `src/models/user.py`
+- [ ] **1.2** [test] 테스트 작성 → `tests/test_user.py`
+- [ ] **1.3** [verify] pytest 실행: `pytest -xvs tests/test_user.py`
+- [ ] **1.4** [lint] 린트 체크: `ruff check src/models/user.py`
+- [ ] **1.5** [commit] 커밋
+
+#### Acceptance Criteria
+- [ ] **1.ac.1** 코드가 컨벤션대로 작성됨 (검증: 기존 코드베이스 스타일과 비교)
+- [ ] **1.ac.2** 테스트 통과 (검증: pytest 실행 결과 확인)
+- [ ] **1.ac.3** 커밋 완료 (검증: git log 확인)
+
+---
+
+### Task 2: 병렬 작업 예시
+**Status:** `pending` | **Parallel Group:** 2
+
+> ℹ️ 기능 3과 완전히 독립적, 다른 파일 수정, 의존성 없음
+
+#### Subtasks
+- [ ] ...
+
+#### Acceptance Criteria
+- [ ] ...
+
+---
+
+## Final Checklist
+
+- [ ] **1.** 기능 동작 검증 (검증: 직접 기능 호출하여 테스트)
+- [ ] **2.** 컨벤션 준수 확인 (검증: 프로젝트 컨벤션 문서와 비교)
+- [ ] **3.** 기존 기능 영향 없음 확인 (검증: 관련 테스트 전체 실행)
+```
+
+### 2.2 Markdown Benefits (vs JSON)
+
+| 항목 | JSON | Markdown |
+|------|------|----------|
+| Escape 필요 | `\"`, `\\`, `\n` 필수 | 불필요 |
+| 코드 블록 | 문자열로 escape | 네이티브 지원 |
+| 가독성 | 구조적 but 복잡 | 자연스러움 |
+| 체크박스 | boolean 필드 | `- [ ]` / `- [x]` |
+| 메타데이터 | JSON 객체 | YAML frontmatter |
+| 토큰 효율 | 오버헤드 큼 | 간결함 |
 
 ### 2.3 Plan Creation Strategy
 
@@ -284,8 +230,8 @@ Analyzes requirements → gathers implementation info → generates actionable p
 
 4. **Parallel Tasks** (with `--parallelable`):
    - Only when certain tasks are independent (different files, zero dependencies)
-   - Set `parallel_group` to same number for parallel tasks
-   - When uncertain → sequential (set `parallel_group: null`)
+   - Set same `Parallel Group` number for parallel tasks
+   - When uncertain → sequential (set `Parallel Group: -`)
 
 ---
 
@@ -301,7 +247,7 @@ Task(
     prompt="""
     Please review the created work plan. This is my first draft, and may have lots of mistakes - I have a super-problematic ADHD, so there are tons of mistakes and missing points, so I want you to catch them all.
 
-    Plan location: @./ai-todolist.json
+    Plan location: @./ai-todolist.md
 
     Please evaluate from these perspectives:
     1. Clarity and achievability of goals
@@ -309,7 +255,7 @@ Task(
     3. Appropriateness of technical approach
     4. Risk identification and mitigation
     5. Sufficiency of validation methods
-    6. JSON format validity
+    6. Markdown format validity (frontmatter, checkboxes, code blocks)
 
     If improvements are needed, please point them out specifically.
     If the plan is sufficiently good, please say "OKAY".
@@ -323,31 +269,19 @@ Task(
 - **Always say "first draft"** in every iteration (never "I reflected feedback...")
 
 ### --edit Option
-1. `Read("./ai-todolist.json")`
+1. `Read("./ai-todolist.md")`
 2. Identify sections needing changes
 3. Update only necessary parts, maintain structure
-4. **CRITICAL**: Validate JSON format before saving
+4. Preserve YAML frontmatter format
 
 ---
 
 ## Phase 4: Final Output
 
-1. **Save JSON**: Write to `./ai-todolist.json` (prettified with 2-space indent)
-2. **Validate**: Ensure JSON is valid before completing
+1. **Save Markdown**: Write to `./ai-todolist.md`
+2. **Validate**: Ensure frontmatter is valid YAML, checkboxes are properly formatted
 3. **TodoWrite**: Add each implementation step
 4. **Report**: Confirm save location, step count, implementation scope
-
-### 4.1 JSON Formatting Command
-
-**Always prettify JSON before saving**:
-
-```bash
-# Validate and format (if jq available)
-cat ai-todolist.json | jq '.' > ai-todolist.json.tmp && mv ai-todolist.json.tmp ai-todolist.json
-
-# Or use Python
-python3 -c "import json; f=open('ai-todolist.json'); d=json.load(f); f.close(); open('ai-todolist.json','w').write(json.dumps(d, indent=2, ensure_ascii=False))"
-```
 
 ---
 
@@ -361,12 +295,12 @@ python3 -c "import json; f=open('ai-todolist.json'); d=json.load(f); f.close(); 
 - [ ] Specific test/validation methods?
 - [ ] Exception handling plans?
 
-### JSON Quality
-- [ ] Valid JSON format? (no syntax errors)
-- [ ] All strings properly escaped?
-- [ ] Prettified with 2-space indent?
-- [ ] No trailing commas?
-- [ ] All required fields present?
+### Markdown Quality
+- [ ] Valid YAML frontmatter?
+- [ ] All checkboxes properly formatted (`- [ ]`)?
+- [ ] Code blocks have language hints?
+- [ ] Headers properly nested (h1 > h2 > h3)?
+- [ ] Tables aligned?
 
 ### Information Fidelity
 - [ ] File paths accurate?
@@ -384,12 +318,36 @@ python3 -c "import json; f=open('ai-todolist.json'); d=json.load(f); f.close(); 
 4. **Incremental**: Iterative improvement over one-time perfection
 5. **Verifiable**: All steps must be testable
 6. **Maintain Patterns**: Keep project's existing style and documented conventions
-7. **JSON Only**: Single file, prettified, properly escaped
+7. **Markdown Format**: Single file, human-readable, no escape overhead
 
 ## Work Completion Message
 
+**After plan creation, ALWAYS output the following message format:**
+
+```
+📋 계획이 완료되었습니다!
+
+📁 파일 위치: ./ai-todolist.md
+📊 총 {N}개의 태스크, {M}개의 서브태스크
+
+다음 단계:
+1. 계획 확인: 위 파일을 열어 계획 내용을 검토하세요
+2. 수정 필요 시: `/planner --edit` 또는 직접 파일 수정
+3. 실행 준비 완료 시: `/execute ./ai-todolist.md` 으로 실행
+
+⚠️ 실행 전 계획을 꼭 확인해주세요!
+```
+
+**Key Points:**
+- DO NOT use ExitPlanMode or any plan acceptance UI
+- DO NOT wait for user approval through Claude's plan mode
+- Simply save the file and provide clear next-step instructions
+- Let the user manually review and decide the next action
+- The user has full control over when to execute
+
 Provide:
-- Save location: `./ai-todolist.json`
-- Total steps count
+- Save location: `./ai-todolist.md`
+- Total task/subtask count
 - Implementation scope summary
-- JSON validation status: ✅ Valid
+- Markdown validation status: ✅ Valid
+- Clear next-step instructions (review → modify → execute)

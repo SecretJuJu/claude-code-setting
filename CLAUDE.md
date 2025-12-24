@@ -148,10 +148,10 @@ Be proactive in making suggestions preemptively, and bold opinions are welcome.
         # Or use full command
         codex exec --skip-git-repo-check 'who are you'
         # with specific model
-        codex exec --skip-git-repo-check --model gpt-5.1-codex-max 'who are you'
+        codex exec --skip-git-repo-check --model gpt-5.2-codex 'who are you'
         ```
     - NOTE: IT MAY TAKE TIMES, SO NEVER FORGET TO SET TIMEOUT AS MAX (1800000 ms (=30 Minutes))
-    - Model: gpt-5.1-codex-max (configured in ~/.codex/config.toml)
+    - Model: gpt-5.2-codex (configured in ~/.codex/config.toml)
     - **KEY FEATURE: Basically Claude Code for GPT, has agentic browsing feature**
     - **DEFAULT CHOICE: Use this as your primary external LLM for ALL complex tasks**
     - **ALWAYS USE FIRST**: Before considering any other external LLM, use Codex

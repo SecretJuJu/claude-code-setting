@@ -61,12 +61,12 @@ POST_TOOL_USE_CONFIG: list[HookMatcher] = [
             ),
             HookCommand(
                 type="command",
-                command="uv run ~/.claude/hooks/post-tool-use/typescript_typecheck.py",
+                command="bun run ~/.claude/hooks/post-tool-use/typescript-typecheck.ts",
                 asyncable=True,
             ),
             HookCommand(
                 type="command",
-                command="uv run ~/.claude/hooks/post-tool-use/typescript_check_any_usage.py",
+                command="bun run ~/.claude/hooks/post-tool-use/typescript-check-any-usage.ts",
                 asyncable=True,
             ),
             HookCommand(
@@ -76,7 +76,7 @@ POST_TOOL_USE_CONFIG: list[HookMatcher] = [
             ),
             HookCommand(
                 type="command",
-                command="uv run ~/.claude/hooks/post-tool-use/python_lint_and_format.py",
+                command="bun run ~/.claude/hooks/post-tool-use/python-lint-and-format.ts",
                 asyncable=False,
             ),
             HookCommand(
