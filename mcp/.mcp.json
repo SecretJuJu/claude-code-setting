@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "memory-keeper": {
+      "type": "stdio",
+      "command": "docker-compose",
+      "args": [
+        "-f",
+        "/Users/secretjuju/.claude/mcp/docker-compose.yml",
+        "run",
+        "--rm",
+        "-T",
+        "memory-keeper"
+      ]
+    },
+    "memory-kg": {
+      "type": "stdio",
+      "command": "docker-compose",
+      "args": [
+        "-f",
+        "/Users/secretjuju/.claude/mcp/docker-compose.yml",
+        "run",
+        "--rm",
+        "-T",
+        "memory-kg"
+      ]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "docker-compose",
+      "args": [
+        "-f",
+        "/Users/secretjuju/.claude/mcp/docker-compose.yml",
+        "run",
+        "--rm",
+        "-T",
+        "sequential-thinking"
+      ]
+    },
+    "perplexity": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@perplexity-ai/mcp-server"],
+      "env": {
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}",
+        "PERPLEXITY_TIMEOUT_MS": "600000"
+      }
+    }
+  }
+}

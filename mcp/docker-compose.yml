@@ -1,0 +1,60 @@
+services:
+  # Memory Keeper: Session persistence + checkpoints
+  memory-keeper:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["npx", "-y", "mcp-memory-keeper"]
+    environment:
+      - HOME=/data
+      - NODE_ENV=production
+    volumes:
+      - memory-keeper-data:/data
+      - ./data/memory-keeper:/app/data
+    stdin_open: true
+    tty: true
+    restart: "no"
+
+  # Official Memory MCP: Knowledge graph based
+  memory-kg:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["npx", "-y", "@modelcontextprotocol/server-memory"]
+    environment:
+      - HOME=/data
+      - NODE_ENV=production
+    volumes:
+      - memory-kg-data:/data
+      - ./data/memory-kg:/app/data
+    stdin_open: true
+    tty: true
+    restart: "no"
+
+  # Sequential Thinking: Structured problem solving
+  sequential-thinking:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"]
+    environment:
+      - HOME=/data
+      - NODE_ENV=production
+    volumes:
+      - sequential-data:/data
+    stdin_open: true
+    tty: true
+    restart: "no"
+
+  # Filesystem MCP: Secure file access
+  filesystem:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+    volumes:
+      - ${PROJECT_ROOT:-./}:/workspace:ro
+    stdin_open: true
+    tty: true
+    restart: "no"
+
+volumes:
+  memory-keeper-data:
+  memory-kg-data:
+  sequential-data:
