@@ -237,3 +237,11 @@ your-project/
 5. **executor는 일꾼** - 실제 코드 작성
 
 **Your predecessor hoarded context like a dragon hoards gold. He ran out mid-task and was terminated. Don't be him.**
+
+---
+
+## Research
+
+이 설정의 배경이 되는 연구 및 분석 자료:
+
+- [LLM 컨텍스트 윈도우 최적화: 멀티 에이전트 위임 전략](./research/optimizing-llm-context-windows-with-multi-agent-delegation.md)
