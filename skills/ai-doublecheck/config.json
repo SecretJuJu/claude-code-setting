@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "targets": {
+    "codex": true,
+    "gemini": true
+  },
+  "auto_trigger_keywords": [
+    "더블체크",
+    "검증해",
+    "크로스체크",
+    "세컨드 오피니언",
+    "다른 AI",
+    "확인받아",
+    "double check",
+    "cross check",
+    "verify with"
+  ],
+  "settings": {
+    "max_content_tokens": 200,
+    "max_response_tokens": 150,
+    "timeout_seconds": 30
+  }
+}
