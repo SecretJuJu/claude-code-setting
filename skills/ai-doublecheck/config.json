@@ -4,6 +4,19 @@
     "codex": true,
     "gemini": true
   },
+  "models": {
+    "gemini": "gemini-3-pro-preview"
+  },
+  "perspectives": {
+    "code_review": {
+      "description": "코드 품질, 가독성, 유지보수성, 설계 패턴",
+      "agents": ["codex", "gemini"]
+    },
+    "qa": {
+      "description": "버그, 엣지케이스, 예외 상황, 보안 취약점",
+      "agents": ["codex", "gemini"]
+    }
+  },
   "auto_trigger_keywords": [
     "더블체크",
     "검증해",
@@ -16,8 +29,9 @@
     "verify with"
   ],
   "settings": {
-    "max_content_tokens": 200,
-    "max_response_tokens": 150,
-    "timeout_seconds": 30
+    "parallel": true,
+    "max_content_tokens": 500,
+    "max_response_tokens": 400,
+    "timeout_seconds": 60
   }
 }
