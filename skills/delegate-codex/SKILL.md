@@ -21,14 +21,21 @@ Codex를 범용 사고 파트너로 활용하는 스킬입니다.
 `--lines N` 옵션으로 Opus 컨텍스트에 들어오는 양을 조절합니다.
 
 ```bash
-# 예상 출력 크기에 따라 --lines 조절
 cx='~/.claude/scripts/cx-review.sh'
 
+# --lines: 예상 출력 크기에 따라 조절
+$cx --lines all 'Short answer...'       # 전체 (짧을 때)
 $cx --lines 50  'Quick question...'     # 짧은 질문
 $cx --lines 100 'Review this code...'   # 코드리뷰
 $cx --lines 200 'Deep analysis...'      # 깊은 분석
-$cx --lines all 'Short answer...'       # 전체 출력 (짧을 때)
 $cx              'Massive analysis...'  # 메타만 → Read로 선택 읽기
+
+# --session: 같은 Codex 세션 이어가기 (반복 리뷰, 후속 질문)
+$cx --lines 100 'Review this plan: ...'
+# → CODEX_SESSION_ID=019cfaac-22bc-...
+
+$cx --session 019cfaac-22bc-... --lines 100 'What about edge cases?'
+# → 같은 세션에서 이어서 대화 (Codex가 이전 맥락 기억)
 
 # BAD — raw 호출 금지 (컨텍스트 낭비)
 codex exec --skip-git-repo-check '...'
@@ -42,6 +49,11 @@ codex exec --skip-git-repo-check '...'
 | 코드리뷰 | `100` | 핵심 이슈 포함 |
 | 깊은 분석 | `200` | 결론 + 주요 근거 |
 | 대규모 분석 | (생략) | 메타만 받고 Read로 필요한 부분만 |
+
+### 세션 활용 시점
+- **Plan Review Loop**: 계획 → Codex 리뷰 → 수정 → 같은 세션으로 재리뷰
+- **디버깅 대화**: 에러 공유 → 가설 토론 → 추가 정보 제공
+- **설계 반복**: 초안 → 피드백 → 개선안 → 재검토
 
 ## 사용 시점
 
