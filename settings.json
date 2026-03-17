@@ -1,10 +1,17 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1"
   },
+  "model": "opus[1m]",
+  "alwaysThinkingEnabled": true,
   "permissions": {
     "allow": [
       "Bash(npm run lint)",
+      "Bash(bun:*)",
+      "Bash(bunx:*)",
       "Bash(yarn:*)",
       "Bash(pnpm:*)",
       "Bash(git status)",
@@ -22,6 +29,7 @@
       "Bash(cat:*)",
       "Bash(head:*)",
       "Bash(tail:*)",
+      "Bash(~/.claude/scripts/*)",
       "Read(*)",
       "Write(*)",
       "Edit(*)"
@@ -29,11 +37,60 @@
     "deny": [
       "Bash(rm -rf /)",
       "Bash(git push --force)",
-      "Bash(git reset --hard)"
+      "Bash(git reset --hard)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(**/.ssh/**)",
+      "Read(**/.aws/**)",
+      "Read(**/.gnupg/**)",
+      "Read(**/credentials*)",
+      "Bash(curl *)",
+      "Bash(wget *)"
     ],
     "defaultMode": "default"
   },
-  "model": "opus[1m]",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -qE '(rm\\s+-.*rf|dd\\s+if=|mkfs|>\\s*/dev/)' && echo '🔴 Destructive command blocked. Ask user for confirmation.' >&2 && exit 2; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -qE 'push.*(--force|--force-with-lease).*(main|master)' && echo '🔴 Force push to main/master blocked.' >&2 && exit 2; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -qE '^npx\\s' && echo '🟡 Use bunx instead of npx (CLAUDE.md rule).' >&2 && exit 2; exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before finishing, verify: 1) Was the original user request fully addressed? 2) Are there any failing tests or type errors from your changes? 3) Did you leave any TODO comments or incomplete implementations? If ANY of these checks fail, continue working instead of stopping."
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "~/.claude/statusline.sh"

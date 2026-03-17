@@ -1,26 +1,32 @@
-# Delegate to Codex
+# Delegate to Codex (Code Review Partner)
 
-Delegate exploration/analysis task to OpenAI Codex CLI.
+Codex를 코드리뷰 파트너로 활용합니다.
 
 ## Instructions
 1. Analyze the user request: $ARGUMENTS
-2. Formulate a clear, context-rich prompt for Codex
-3. Execute: `codex exec --skip-git-repo-check 'Think deeply. [task details with full context]'`
-4. Compress Codex response to ≤200 tokens
-5. Present compressed result with key insights
+2. Gather relevant code/diff context from the codebase
+3. Formulate a clear review prompt with full context for Codex
+4. Execute via wrapper: `~/.claude/scripts/cx-review.sh 'Think deeply. [review request with code context]'`
+5. If output was truncated, read full output from `/tmp/cx-review-*.md` only if needed
+6. Present Codex feedback organized by severity
+
+## CRITICAL
+- **ALWAYS** use `~/.claude/scripts/cx-review.sh` — NEVER raw `codex exec`
+- The wrapper saves full output to `/tmp/cx-review-*.md` and returns max 200 lines
+- This protects Opus context from Codex's verbose thinking/reasoning output
+- Set Bash timeout to 1800000 for large reviews
 
 ## Output Format
 ```
-CODEX DELEGATION RESULT
-Task: [brief description]
-Key Findings:
-- [finding 1]
-- [finding 2]
-Files: [relevant paths]
-Recommendation: [1-2 sentences]
+CODEX REVIEW
+Target: [what was reviewed]
+🔴 Critical: [must-fix issues]
+🟡 Suggestions: [should-consider improvements]
+🟢 Good: [notable positive patterns]
+Verdict: [1-2 sentence summary]
 ```
 
 ## Rules
-- Include all necessary context in the Codex prompt
-- Set timeout to 1800000 for complex analysis
-- Never include raw Codex output; always compress
+- Include all necessary code context in the Codex prompt
+- Focus on real issues, not style nitpicks
+- Never include raw Codex output; organize by severity

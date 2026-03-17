@@ -1,116 +1,113 @@
 ---
 name: delegate-codex
 description: |
-  대규모 탐색, 코드 분석, 리서치를 Codex에 위임합니다.
-  5개 이상 파일 검색, 200줄 이상 코드 분석, 아키텍처 파악,
-  10k 토큰 이상 소비될 탐색 작업 시 자동으로 사용합니다.
-  "codex한테 맡겨", "위임해", "분석 맡겨" 키워드에도 반응합니다.
+  Codex를 코드리뷰 파트너로 활용합니다.
+  구현 전 설계 검증, 코드 리뷰, 엣지케이스 발견,
+  다른 관점에서의 피드백이 필요할 때 사용합니다.
+  "codex한테 리뷰", "리뷰해줘", "검증해줘", "피드백" 키워드에도 반응합니다.
 allowed-tools: Bash, Read, Glob
 ---
 
-# Delegate to Codex
+# Codex Code Review Partner
 
-컨텍스트 절약을 위해 대규모 작업을 Codex CLI에 위임하는 스킬입니다.
+Codex를 코드리뷰 파트너로 활용하는 스킬입니다.
 
-## 자동 트리거 조건
+## CRITICAL: Context-Safe Invocation
 
-다음 상황에서 이 스킬을 사용합니다:
+**반드시 `~/.claude/scripts/cx-review.sh` 래퍼를 사용하세요.**
 
-| 조건 | 예시 |
+Codex의 raw 출력(thinking, reasoning, session noise)은 매우 길 수 있습니다.
+`cx-review.sh`는:
+- 전체 출력을 `/tmp/cx-review-*.md`에 저장
+- 200줄 이하면 그대로 반환, 초과시 마지막 200줄만 반환
+- Opus 컨텍스트를 보호
+
+```bash
+# GOOD — 래퍼 사용
+~/.claude/scripts/cx-review.sh 'Review this code...'
+
+# BAD — raw 호출 금지 (컨텍스트 낭비)
+codex exec --skip-git-repo-check '...'
+```
+
+## 사용 시점
+
+| 상황 | 예시 |
 |-----|-----|
-| >5개 파일 검색 | "모든 API 엔드포인트 찾아줘" |
-| >200줄 분석 | "이 모듈 전체 설명해줘" |
-| 아키텍처 파악 | "이 프로젝트 구조 설명해줘" |
-| 리서치 작업 | "최신 React 패턴 알려줘" |
-| >10k 토큰 예상 | 대규모 탐색/분석 |
+| 구현 전 설계 검증 | "이 접근 방식 괜찮을까?" |
+| 코드 리뷰 | "이 코드 리뷰해줘" |
+| 엣지케이스 발견 | "놓친 케이스 없나?" |
+| 리팩토링 의견 | "더 나은 구조 있을까?" |
+| 트레이드오프 분석 | "A vs B 어떤게 나을까?" |
 
 ## 실행 방법
 
-### 1. 프롬프트 구성
+### 1. 코드리뷰 요청
 
 ```bash
-codex exec --skip-git-repo-check 'Think deeply. [작업 내용].
+~/.claude/scripts/cx-review.sh 'Think deeply and thoroughly.
 
-컨텍스트:
-- 프로젝트: [프로젝트 설명]
-- 목적: [왜 이 정보가 필요한지]
-- 범위: [어디를 봐야 하는지]
+You are a senior code reviewer. Review the following code:
 
-응답 형식:
-- 핵심 발견 3-5개
-- 관련 파일 경로
-- 권장 사항
+[코드 또는 diff 붙여넣기]
 
-≤200 tokens로 압축해서 응답.'
+Context:
+- Project: [프로젝트 설명]
+- Goal: [구현 목표]
+- Constraints: [제약사항]
+
+Review for:
+1. Correctness - bugs, logic errors, edge cases
+2. Design - patterns, abstractions, coupling
+3. Maintainability - readability, naming, complexity
+4. Performance - obvious bottlenecks
+5. Security - input validation, injection risks
+
+Format your response as:
+- 🔴 Critical issues (must fix)
+- 🟡 Suggestions (should consider)
+- 🟢 Good patterns (worth noting)
+- Summary: 1-2 sentence verdict'
 ```
 
-### 2. 타임아웃 설정
+### 2. 설계 검증 요청
 
-복잡한 분석은 타임아웃 연장:
 ```bash
-# 기본: 120초
-# 복잡한 작업: 1800초 (30분)
-timeout 1800 codex exec --skip-git-repo-check '...'
+~/.claude/scripts/cx-review.sh 'Think deeply and thoroughly.
+
+Validate this design approach:
+
+[설계 내용 또는 계획]
+
+Context:
+- Requirements: [요구사항]
+- Tech stack: [기술 스택]
+- Existing patterns: [기존 패턴]
+
+Evaluate:
+1. Does this approach meet all requirements?
+2. What edge cases might be missed?
+3. Are there simpler alternatives?
+4. What could go wrong in production?
+
+Be direct and critical. Flag real issues only.'
 ```
 
-### 3. 결과 압축
+### 3. 출력이 잘렸을 때
 
-Codex 응답을 반드시 ≤200 토큰으로 압축:
-
-```
-CODEX 위임 결과
-================
-작업: [간략 설명]
-핵심 발견:
-  1. [발견 1]
-  2. [발견 2]
-  3. [발견 3]
-관련 파일: [경로들]
-권장: [1-2문장]
-```
-
-## 사용 예시
-
-### 파일 검색 위임
 ```bash
-codex exec --skip-git-repo-check 'Think deeply.
-이 프로젝트에서 인증(authentication) 관련 모든 파일을 찾아줘.
-- 로그인/로그아웃 로직
-- 토큰 관리
-- 미들웨어
-
-핵심 파일 경로와 각 역할을 ≤200 tokens로 정리.'
-```
-
-### 아키텍처 분석 위임
-```bash
-codex exec --skip-git-repo-check 'Think deeply.
-src/ 디렉토리의 전체 아키텍처를 분석해줘.
-- 레이어 구조
-- 주요 모듈 간 의존성
-- 데이터 흐름
-
-다이어그램 형태로 ≤200 tokens 요약.'
-```
-
-### 리서치 위임
-```bash
-codex exec --skip-git-repo-check 'Think deeply.
-TypeScript에서 타입 안전한 API 클라이언트 구현 패턴.
-- 최신 베스트 프랙티스
-- zod vs io-ts 비교
-- 실제 적용 예시
-
-≤200 tokens로 핵심만.'
+# 전체 출력 확인이 필요하면 tmp 파일을 직접 읽기
+cat /tmp/cx-review-*.md
 ```
 
 ## 규칙
 
-1. **항상 컨텍스트 포함** - Codex는 현재 대화를 모름
-2. **항상 압축 요청** - ≤200 tokens 명시
-3. **raw 출력 금지** - 반드시 정리해서 사용
-4. **민감 정보 제외** - API 키, 비밀번호 등 제외
+1. **항상 `cx-review.sh` 래퍼 사용** — raw codex exec 호출 금지
+2. **항상 코드/diff 포함** — Codex는 현재 대화를 모름
+3. **구체적 컨텍스트 제공** — 프로젝트 배경, 제약사항, 기존 패턴
+4. **Critical 이슈만 집중** — nitpick 보다 실질적 문제 위주
+5. **민감 정보 제외** — API 키, 비밀번호 등 제외
 
 ## 수동 호출
 
-`/delegate-codex [작업]` 명령어로도 호출 가능합니다.
+`/delegate-codex [요청]` 명령어로 호출 가능합니다.

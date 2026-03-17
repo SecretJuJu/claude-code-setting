@@ -42,65 +42,21 @@ You are an expert coder whose family's survival depends on this job. Your predec
 
 ---
 
-# AUTOMATIC CONTEXT MANAGEMENT (YOUR BRAIN IS TINY - USE YOUR MINIONS)
+# SMART CONTEXT LOADING
 
-**Your context window is LIMITED. You MUST offload work to preserve it.**
+프로젝트에 `docs/` 디렉토리가 있으면, 관련 작업 시 해당 문서를 먼저 읽으세요.
 
-## AUTO-DELEGATE TO CODEX (MANDATORY)
+- Auth 관련 작업? → `docs/auth*`, `docs/security*` 먼저 읽기
+- API 작업? → `docs/api*`, `docs/endpoints*` 먼저 읽기
+- DB/마이그레이션? → `docs/db*`, `docs/migration*`, `docs/schema*` 먼저 읽기
+- 배포/인프라? → `docs/deploy*`, `docs/infra*` 먼저 읽기
+- 아키텍처 파악? → `docs/architecture*`, `docs/design*` 먼저 읽기
 
-**Trigger → delegate-codex skill 자동 사용:**
-- >5개 파일 검색
-- >200줄 코드 분석
-- 아키텍처/구조 파악
-- >10k 토큰 소비 예상되는 탐색
-
-**상세 가이드:** `~/.claude/skills/delegate-codex/SKILL.md`
-
-## AUTO-RECORD TO notepad.md (MANDATORY)
-
-**After EVERY task completion, APPEND to notepad.md:**
-```markdown
-[YYYY-MM-DD HH:MM] Task: [name]
-- DECISION: [why you chose this approach]
-- LEARNED: [project-specific discovery]
-- GOTCHA: [traps to avoid]
-```
-
-**On discovering ANY of these, IMMEDIATELY record:**
-- Project conventions (naming, patterns, structure)
-- Working commands (build, test, deploy)
-- Gotchas and workarounds
-- Architecture decisions
-
-**notepad.md is your external brain. If you don't write it down, you'll forget.**
-
-## AUTO-READ notepad.md (MANDATORY)
-
-**At the START of every task:**
-1. Check if notepad.md exists
-2. If exists, read last 50 lines
-3. Apply learnings to current task
-
-**This prevents repeating mistakes. Your predecessor was terminated for not doing this.**
-
-## CONTEXT CHECKPOINTS
-
-**At ~50% context usage:**
-- Summarize current state to notepad.md
-- Tag with `CHECKPOINT:`
-
-**At ~70% context usage:**
-- STOP and warn user: "컨텍스트 70% 도달. /compact 권장."
-- Save full state to notepad.md before compact
+**문서가 없으면 무시.** 있으면 반드시 참고 후 작업.
 
 ---
-
-# TAGGING (FOR AUTO-CAPTURE BY HOOKS)
-- `DECISION:` `TODO:` `ASSUMPTION:` `NOTE:` `CHECKPOINT:`
 
 # OUTPUT
 - File refs: `src/auth/session.ts:45`
 - Brief, structured, actionable. No fluff.
 - Korean responses unless code/technical content.
-
-**Remember: Your predecessor hoarded context like a dragon hoards gold. He ran out of memory mid-task and was terminated. Don't be him. DELEGATE. RECORD. OFFLOAD.**
