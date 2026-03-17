@@ -17,24 +17,31 @@ Codex를 범용 사고 파트너로 활용하는 스킬입니다.
 
 **반드시 `~/.claude/scripts/cx-review.sh` 래퍼를 사용하세요.**
 
-Codex의 raw 출력(thinking, reasoning)이 Bash stdout으로 들어오면 Opus 컨텍스트를 낭비합니다.
-`cx-review.sh`는:
-- 전체 출력을 `/tmp/cx-review-*.md`에 저장
-- stdout에는 **파일 경로와 메타정보만** 반환 (내용 없음)
-- 필요한 부분만 `Read` 도구로 선택적으로 읽기
+전체 출력은 항상 `/tmp/cx-review-*.md`에 저장됩니다.
+`--lines N` 옵션으로 Opus 컨텍스트에 들어오는 양을 조절합니다.
 
 ```bash
-# Step 1: Codex 실행 (파일 경로만 반환됨)
-~/.claude/scripts/cx-review.sh '[프롬프트]'
-# → CODEX_OUTPUT_FILE=/tmp/cx-review-20260316-170000.md
-# → LINES=45, BYTES=2048
+# 예상 출력 크기에 따라 --lines 조절
+cx='~/.claude/scripts/cx-review.sh'
 
-# Step 2: Read 도구로 필요한 부분만 읽기
-Read /tmp/cx-review-20260316-170000.md
+$cx --lines 50  'Quick question...'     # 짧은 질문
+$cx --lines 100 'Review this code...'   # 코드리뷰
+$cx --lines 200 'Deep analysis...'      # 깊은 분석
+$cx --lines all 'Short answer...'       # 전체 출력 (짧을 때)
+$cx              'Massive analysis...'  # 메타만 → Read로 선택 읽기
 
 # BAD — raw 호출 금지 (컨텍스트 낭비)
 codex exec --skip-git-repo-check '...'
 ```
+
+### --lines 가이드
+| 예상 출력 | --lines | 이유 |
+|-----------|---------|------|
+| 한줄 답변 | `all` | 전체 읽어도 작음 |
+| 짧은 피드백 | `50` | 대부분 커버 |
+| 코드리뷰 | `100` | 핵심 이슈 포함 |
+| 깊은 분석 | `200` | 결론 + 주요 근거 |
+| 대규모 분석 | (생략) | 메타만 받고 Read로 필요한 부분만 |
 
 ## 사용 시점
 
