@@ -17,15 +17,20 @@ Codex를 범용 사고 파트너로 활용하는 스킬입니다.
 
 **반드시 `~/.claude/scripts/cx-review.sh` 래퍼를 사용하세요.**
 
-Codex의 raw 출력(thinking, reasoning, session noise)은 매우 길 수 있습니다.
+Codex의 raw 출력(thinking, reasoning)이 Bash stdout으로 들어오면 Opus 컨텍스트를 낭비합니다.
 `cx-review.sh`는:
 - 전체 출력을 `/tmp/cx-review-*.md`에 저장
-- 200줄 이하면 그대로 반환, 초과시 마지막 200줄만 반환
-- Opus 컨텍스트를 보호
+- stdout에는 **파일 경로와 메타정보만** 반환 (내용 없음)
+- 필요한 부분만 `Read` 도구로 선택적으로 읽기
 
 ```bash
-# GOOD — 래퍼 사용
+# Step 1: Codex 실행 (파일 경로만 반환됨)
 ~/.claude/scripts/cx-review.sh '[프롬프트]'
+# → CODEX_OUTPUT_FILE=/tmp/cx-review-20260316-170000.md
+# → LINES=45, BYTES=2048
+
+# Step 2: Read 도구로 필요한 부분만 읽기
+Read /tmp/cx-review-20260316-170000.md
 
 # BAD — raw 호출 금지 (컨텍스트 낭비)
 codex exec --skip-git-repo-check '...'
