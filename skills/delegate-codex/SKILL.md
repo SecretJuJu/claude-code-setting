@@ -1,116 +1,134 @@
 ---
 name: delegate-codex
-description: |
-  대규모 탐색, 코드 분석, 리서치를 Codex에 위임합니다.
-  5개 이상 파일 검색, 200줄 이상 코드 분석, 아키텍처 파악,
-  10k 토큰 이상 소비될 탐색 작업 시 자동으로 사용합니다.
-  "codex한테 맡겨", "위임해", "분석 맡겨" 키워드에도 반응합니다.
+description: >-
+  Use Codex as a thinking partner for code review, design validation, deep analysis, tradeoff
+  comparison, debugging consultation, and second opinions. Use this skill whenever the user asks
+  for a code review, wants design feedback, needs help debugging, asks to compare approaches,
+  or requests deep thinking on a problem. Also activate when the user says "codex한테", "리뷰해줘",
+  "검증해줘", "고민", "피드백", "맡겨", "깊게 생각", "세컨드 오피니언", or any phrase suggesting
+  they want an independent perspective from another AI model. Even casual requests like
+  "이거 어떻게 생각해?" or "한번 봐줘" about code or architecture should trigger this skill.
 allowed-tools: Bash, Read, Glob
 ---
 
-# Delegate to Codex
+# Codex Thinking Partner
 
-컨텍스트 절약을 위해 대규모 작업을 Codex CLI에 위임하는 스킬입니다.
+Delegates complex reasoning to Codex CLI. Using a separate model provides an independent perspective — Codex has different strengths and blind spots than Claude, making it valuable for catching issues Claude might miss.
 
-## 자동 트리거 조건
+## Context-Safe Invocation
 
-다음 상황에서 이 스킬을 사용합니다:
-
-| 조건 | 예시 |
-|-----|-----|
-| >5개 파일 검색 | "모든 API 엔드포인트 찾아줘" |
-| >200줄 분석 | "이 모듈 전체 설명해줘" |
-| 아키텍처 파악 | "이 프로젝트 구조 설명해줘" |
-| 리서치 작업 | "최신 React 패턴 알려줘" |
-| >10k 토큰 예상 | 대규모 탐색/분석 |
-
-## 실행 방법
-
-### 1. 프롬프트 구성
+Use the `cx-review.sh` wrapper to control how much output enters the Opus context window. Raw `codex exec` dumps everything into context and wastes tokens.
 
 ```bash
-codex exec --skip-git-repo-check 'Think deeply. [작업 내용].
+cx='~/.claude/scripts/cx-review.sh'
 
-컨텍스트:
-- 프로젝트: [프로젝트 설명]
-- 목적: [왜 이 정보가 필요한지]
-- 범위: [어디를 봐야 하는지]
+# --lines controls how much comes back into context
+$cx --lines all 'Short answer...'       # full output (small responses)
+$cx --lines 50  'Quick question...'     # short feedback
+$cx --lines 100 'Review this code...'   # code review
+$cx --lines 200 'Deep analysis...'      # deep analysis
+$cx              'Massive analysis...'  # metadata only → Read selectively
 
-응답 형식:
-- 핵심 발견 3-5개
-- 관련 파일 경로
-- 권장 사항
-
-≤200 tokens로 압축해서 응답.'
+# --session continues a Codex conversation (it remembers prior context)
+$cx --lines 100 'Review this plan: ...'
+# → CODEX_SESSION_ID=019cfaac-22bc-...
+$cx --session 019cfaac-22bc-... --lines 100 'What about edge cases?'
 ```
 
-### 2. 타임아웃 설정
+### --lines guide
 
-복잡한 분석은 타임아웃 연장:
+| Expected output | --lines | Reason |
+|-----------------|---------|--------|
+| One-liner | `all` | Fits entirely |
+| Short feedback | `50` | Covers most |
+| Code review | `100` | Key issues included |
+| Deep analysis | `200` | Conclusion + evidence |
+| Large analysis | (omit) | Metadata only, Read the rest |
+
+### When to use sessions
+- **Plan review loop**: plan → Codex review → revise → re-review in same session
+- **Debugging dialogue**: share error → discuss hypotheses → provide more info
+- **Design iteration**: draft → feedback → improve → re-evaluate
+
+## Prompt structure
+
+Codex has zero knowledge of the current conversation. Include all relevant context — project details, tech stack, constraints, and the specific code or decision under review. Be concrete about what you want evaluated.
+
 ```bash
-# 기본: 120초
-# 복잡한 작업: 1800초 (30분)
-timeout 1800 codex exec --skip-git-repo-check '...'
+~/.claude/scripts/cx-review.sh --lines 100 'Think deeply and thoroughly.
+
+[Role or perspective]
+
+[Question or request]
+
+Context:
+- Project: [description]
+- Tech stack: [stack]
+- Constraints: [constraints]
+
+[Specific evaluation criteria]
+
+Be direct and critical. Respond concisely.'
 ```
 
-### 3. 결과 압축
+## Examples
 
-Codex 응답을 반드시 ≤200 토큰으로 압축:
-
-```
-CODEX 위임 결과
-================
-작업: [간략 설명]
-핵심 발견:
-  1. [발견 1]
-  2. [발견 2]
-  3. [발견 3]
-관련 파일: [경로들]
-권장: [1-2문장]
-```
-
-## 사용 예시
-
-### 파일 검색 위임
+### Code review
 ```bash
-codex exec --skip-git-repo-check 'Think deeply.
-이 프로젝트에서 인증(authentication) 관련 모든 파일을 찾아줘.
-- 로그인/로그아웃 로직
-- 토큰 관리
-- 미들웨어
+$cx --lines 100 'Think deeply.
+You are a senior code reviewer. Review this code:
 
-핵심 파일 경로와 각 역할을 ≤200 tokens로 정리.'
+[code or diff]
+
+Review for: correctness, design, performance, security.
+Format: Critical / Suggestion / Good'
 ```
 
-### 아키텍처 분석 위임
+### Design validation
 ```bash
-codex exec --skip-git-repo-check 'Think deeply.
-src/ 디렉토리의 전체 아키텍처를 분석해줘.
-- 레이어 구조
-- 주요 모듈 간 의존성
-- 데이터 흐름
+$cx --lines 100 'Think deeply.
+Validate this design:
 
-다이어그램 형태로 ≤200 tokens 요약.'
+[design details]
+
+1. Does it meet requirements?
+2. What edge cases are missed?
+3. Simpler alternatives?
+4. What could go wrong in production?'
 ```
 
-### 리서치 위임
+### Debugging
 ```bash
-codex exec --skip-git-repo-check 'Think deeply.
-TypeScript에서 타입 안전한 API 클라이언트 구현 패턴.
-- 최신 베스트 프랙티스
-- zod vs io-ts 비교
-- 실제 적용 예시
+$cx --lines 100 'Think deeply.
+Debug this issue:
 
-≤200 tokens로 핵심만.'
+Error: [error message]
+Code: [relevant code]
+Context: [reproduction steps]
+
+Most likely root causes? Rank by probability.'
 ```
 
-## 규칙
+### Tradeoff analysis
+```bash
+$cx --lines 150 'Think deeply.
+Compare these approaches:
 
-1. **항상 컨텍스트 포함** - Codex는 현재 대화를 모름
-2. **항상 압축 요청** - ≤200 tokens 명시
-3. **raw 출력 금지** - 반드시 정리해서 사용
-4. **민감 정보 제외** - API 키, 비밀번호 등 제외
+Option A: [description]
+Option B: [description]
 
-## 수동 호출
+Context: [project situation, constraints]
 
-`/delegate-codex [작업]` 명령어로도 호출 가능합니다.
+Compare on: complexity, performance, maintainability, risk.
+Clear recommendation with reasoning.'
+```
+
+## If output is truncated
+
+Full output is always saved to `/tmp/cx-review-*.md`. Use Read to access specific sections.
+
+## Rules
+
+1. Use `cx-review.sh` wrapper — raw `codex exec` wastes context
+2. Include full context — Codex has no conversation history
+3. Exclude sensitive data — no API keys or passwords

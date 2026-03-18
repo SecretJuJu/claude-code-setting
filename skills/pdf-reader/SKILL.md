@@ -1,136 +1,91 @@
 ---
 name: pdf-reader
-description: PDF 파일 읽기, 텍스트 추출, 테이블 추출, 이미지 추출, 메타데이터 확인. PDF 파일을 읽거나, PDF에서 텍스트를 추출하거나, PDF 문서 분석이 필요할 때 사용합니다. pdfplumber, pypdf, pdftotext 도구 활용.
+description: >-
+  Read, extract text from, and analyze PDF files using pdfplumber, pypdf, pdftotext, or the
+  bundled extract.py script. Use this skill whenever the user mentions a PDF file, wants to read
+  a .pdf document, extract text or tables from a PDF, check PDF metadata, split or merge PDFs,
+  or analyze any document that is in PDF format. Also use when the user references a file path
+  ending in .pdf, says "이 PDF 읽어줘", "PDF에서 텍스트 뽑아줘", "테이블 추출", or any phrase
+  involving PDF document processing, even if they just say "이 파일 좀 봐줘" about a .pdf file.
 allowed-tools: Read, Bash, Glob, Grep
 ---
 
-# PDF Reader Skill
+# PDF Reader
 
-PDF 파일을 읽고 분석하는 스킬입니다.
+Read and analyze PDF files. Choose the right tool based on what you need — there's a bundled script for convenience, plus individual tools for specific needs.
 
-## 사용 가능한 도구들
+## Bundled script (recommended)
 
-### 1. pdftotext (권장 - 빠르고 정확)
-macOS에 기본 설치된 도구입니다.
+The `scripts/extract.py` script handles most PDF tasks. It auto-selects the best engine and supports text, tables, metadata, and per-page extraction.
 
 ```bash
-# 기본 텍스트 추출
-pdftotext input.pdf -
+# Basic text extraction
+uv run --with pdfplumber --with pypdf python3 ${CLAUDE_SKILL_DIR}/scripts/extract.py document.pdf
 
-# 레이아웃 유지
-pdftotext -layout input.pdf -
+# Extract tables too
+uv run --with pdfplumber --with pypdf python3 ${CLAUDE_SKILL_DIR}/scripts/extract.py document.pdf --tables
 
-# 특정 페이지만 추출 (1-3 페이지)
-pdftotext -f 1 -l 3 input.pdf -
+# JSON output (useful for programmatic processing)
+uv run --with pdfplumber --with pypdf python3 ${CLAUDE_SKILL_DIR}/scripts/extract.py document.pdf --json
 
-# 파일로 저장
-pdftotext input.pdf output.txt
+# Specific page only
+uv run --with pdfplumber --with pypdf python3 ${CLAUDE_SKILL_DIR}/scripts/extract.py document.pdf --page 3
+
+# Use pypdf engine (better for metadata)
+uv run --with pdfplumber --with pypdf python3 ${CLAUDE_SKILL_DIR}/scripts/extract.py document.pdf --engine pypdf
 ```
 
-### 2. pdfplumber (Python - 테이블 추출에 강함)
+## Individual tools
 
+Use these when the bundled script is overkill or you need a specific capability.
+
+### pdftotext — fast plain text
 ```bash
-# 설치
-uv pip install pdfplumber
+pdftotext input.pdf -              # basic extraction
+pdftotext -layout input.pdf -      # preserve layout
+pdftotext -f 1 -l 3 input.pdf -   # pages 1-3 only
+```
 
-# 텍스트 추출
-uv run --with pdfplumber python -c "
+### pdfplumber — tables and structured data
+```bash
+uv run --with pdfplumber python3 -c "
 import pdfplumber
-import sys
-
-with pdfplumber.open('$PDF_PATH') as pdf:
-    for i, page in enumerate(pdf.pages):
-        print(f'=== Page {i+1} ===')
-        print(page.extract_text() or '[No text found]')
-        print()
-"
-
-# 테이블 추출
-uv run --with pdfplumber python -c "
-import pdfplumber
-import json
-
 with pdfplumber.open('$PDF_PATH') as pdf:
     for i, page in enumerate(pdf.pages):
         tables = page.extract_tables()
         if tables:
             print(f'=== Page {i+1} Tables ===')
             for j, table in enumerate(tables):
-                print(f'Table {j+1}:')
-                for row in table:
-                    print(row)
-                print()
+                for row in table: print(row)
 "
 ```
 
-### 3. pypdf (Python - 메타데이터, 분할, 병합)
-
+### pypdf — metadata, split, merge
 ```bash
-# 설치
-uv pip install pypdf
-
-# 메타데이터 확인
-uv run --with pypdf python -c "
+uv run --with pypdf python3 -c "
 from pypdf import PdfReader
-
-reader = PdfReader('$PDF_PATH')
-print(f'Pages: {len(reader.pages)}')
-print(f'Metadata: {reader.metadata}')
-"
-
-# 텍스트 추출
-uv run --with pypdf python -c "
-from pypdf import PdfReader
-
-reader = PdfReader('$PDF_PATH')
-for i, page in enumerate(reader.pages):
-    print(f'=== Page {i+1} ===')
-    print(page.extract_text())
+r = PdfReader('$PDF_PATH')
+print(f'Pages: {len(r.pages)}')
+print(f'Metadata: {r.metadata}')
 "
 ```
 
-### 4. Claude의 내장 Read 도구
-Claude Code는 PDF 파일을 직접 읽을 수 있습니다.
+### Claude's built-in Read tool
+Claude Code can read PDFs directly via the Read tool — useful for visual analysis of scanned documents or complex layouts.
 
-```
-Read tool로 PDF 파일 경로를 직접 전달하면 Claude가 PDF 내용을 시각적으로 분석합니다.
-```
+## Tool selection guide
 
-## 사용 시나리오
+| Need | Best tool | Why |
+|------|-----------|-----|
+| Quick text extraction | `pdftotext` | Fastest, no dependencies |
+| Tables / structured data | `pdfplumber` or bundled script | Best table detection |
+| Metadata / split / merge | `pypdf` | PDF manipulation features |
+| Visual analysis | Claude `Read` tool | Handles images and layout |
+| Large PDFs | `pdftotext` with page range | Memory efficient |
+| Everything at once | Bundled `extract.py` | One command, multiple features |
 
-### 시나리오 1: 빠른 텍스트 추출
-```bash
-pdftotext document.pdf -
-```
+## Notes
 
-### 시나리오 2: 테이블 데이터 추출
-```bash
-uv run --with pdfplumber python extract_tables.py document.pdf
-```
-
-### 시나리오 3: PDF 정보 확인
-```bash
-uv run --with pypdf python -c "
-from pypdf import PdfReader
-r = PdfReader('document.pdf')
-print(f'Pages: {len(r.pages)}, Title: {r.metadata.title if r.metadata else \"N/A\"}')"
-```
-
-### 시나리오 4: 특정 페이지만 추출
-```bash
-pdftotext -f 5 -l 10 document.pdf -  # 5~10 페이지만
-```
-
-## 베스트 프랙티스
-
-1. **간단한 텍스트 추출**: `pdftotext` 사용 (가장 빠름)
-2. **테이블이 있는 PDF**: `pdfplumber` 사용
-3. **메타데이터/분할/병합**: `pypdf` 사용
-4. **시각적 분석 필요**: Claude의 `Read` 도구 사용
-5. **큰 PDF**: 페이지 범위 지정하여 처리
-
-## 주의사항
-
-- 스캔된 PDF (이미지 기반)는 OCR이 필요할 수 있음
-- 암호화된 PDF는 비밀번호가 필요함
-- 대용량 PDF는 메모리 사용에 주의
+- Scanned (image-based) PDFs may need OCR — consider `ocrmypdf` if text extraction returns empty
+- Encrypted PDFs require the password
+- For very large PDFs, always specify a page range to avoid memory issues
