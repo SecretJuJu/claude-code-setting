@@ -1,117 +1,95 @@
 ---
 name: delegate-codex
-description: |
-  Codex를 사고 파트너로 활용합니다.
-  코드리뷰, 설계 검증, 깊은 사고가 필요한 문제, 트레이드오프 분석,
-  세컨드 오피니언, 디버깅 상담 등 범용적으로 사용합니다.
-  "codex한테", "리뷰해줘", "검증해줘", "고민", "피드백", "맡겨",
-  "깊게 생각", "세컨드 오피니언" 키워드에 반응합니다.
+description: >-
+  Use Codex as a thinking partner for code review, design validation, deep analysis, tradeoff
+  comparison, debugging consultation, and second opinions. Use this skill whenever the user asks
+  for a code review, wants design feedback, needs help debugging, asks to compare approaches,
+  or requests deep thinking on a problem. Also activate when the user says "codex한테", "리뷰해줘",
+  "검증해줘", "고민", "피드백", "맡겨", "깊게 생각", "세컨드 오피니언", or any phrase suggesting
+  they want an independent perspective from another AI model. Even casual requests like
+  "이거 어떻게 생각해?" or "한번 봐줘" about code or architecture should trigger this skill.
 allowed-tools: Bash, Read, Glob
 ---
 
 # Codex Thinking Partner
 
-Codex를 범용 사고 파트너로 활용하는 스킬입니다.
+Delegates complex reasoning to Codex CLI. Using a separate model provides an independent perspective — Codex has different strengths and blind spots than Claude, making it valuable for catching issues Claude might miss.
 
-## CRITICAL: Context-Safe Invocation
+## Context-Safe Invocation
 
-**반드시 `~/.claude/scripts/cx-review.sh` 래퍼를 사용하세요.**
-
-전체 출력은 항상 `/tmp/cx-review-*.md`에 저장됩니다.
-`--lines N` 옵션으로 Opus 컨텍스트에 들어오는 양을 조절합니다.
+Use the `cx-review.sh` wrapper to control how much output enters the Opus context window. Raw `codex exec` dumps everything into context and wastes tokens.
 
 ```bash
 cx='~/.claude/scripts/cx-review.sh'
 
-# --lines: 예상 출력 크기에 따라 조절
-$cx --lines all 'Short answer...'       # 전체 (짧을 때)
-$cx --lines 50  'Quick question...'     # 짧은 질문
-$cx --lines 100 'Review this code...'   # 코드리뷰
-$cx --lines 200 'Deep analysis...'      # 깊은 분석
-$cx              'Massive analysis...'  # 메타만 → Read로 선택 읽기
+# --lines controls how much comes back into context
+$cx --lines all 'Short answer...'       # full output (small responses)
+$cx --lines 50  'Quick question...'     # short feedback
+$cx --lines 100 'Review this code...'   # code review
+$cx --lines 200 'Deep analysis...'      # deep analysis
+$cx              'Massive analysis...'  # metadata only → Read selectively
 
-# --session: 같은 Codex 세션 이어가기 (반복 리뷰, 후속 질문)
+# --session continues a Codex conversation (it remembers prior context)
 $cx --lines 100 'Review this plan: ...'
 # → CODEX_SESSION_ID=019cfaac-22bc-...
-
 $cx --session 019cfaac-22bc-... --lines 100 'What about edge cases?'
-# → 같은 세션에서 이어서 대화 (Codex가 이전 맥락 기억)
-
-# BAD — raw 호출 금지 (컨텍스트 낭비)
-codex exec --skip-git-repo-check '...'
 ```
 
-### --lines 가이드
-| 예상 출력 | --lines | 이유 |
-|-----------|---------|------|
-| 한줄 답변 | `all` | 전체 읽어도 작음 |
-| 짧은 피드백 | `50` | 대부분 커버 |
-| 코드리뷰 | `100` | 핵심 이슈 포함 |
-| 깊은 분석 | `200` | 결론 + 주요 근거 |
-| 대규모 분석 | (생략) | 메타만 받고 Read로 필요한 부분만 |
+### --lines guide
 
-### 세션 활용 시점
-- **Plan Review Loop**: 계획 → Codex 리뷰 → 수정 → 같은 세션으로 재리뷰
-- **디버깅 대화**: 에러 공유 → 가설 토론 → 추가 정보 제공
-- **설계 반복**: 초안 → 피드백 → 개선안 → 재검토
+| Expected output | --lines | Reason |
+|-----------------|---------|--------|
+| One-liner | `all` | Fits entirely |
+| Short feedback | `50` | Covers most |
+| Code review | `100` | Key issues included |
+| Deep analysis | `200` | Conclusion + evidence |
+| Large analysis | (omit) | Metadata only, Read the rest |
 
-## 사용 시점
+### When to use sessions
+- **Plan review loop**: plan → Codex review → revise → re-review in same session
+- **Debugging dialogue**: share error → discuss hypotheses → provide more info
+- **Design iteration**: draft → feedback → improve → re-evaluate
 
-| 상황 | 예시 |
-|-----|-----|
-| 코드 리뷰 | "이 코드 리뷰해줘" |
-| 설계 검증 | "이 접근 방식 괜찮을까?" |
-| 깊은 사고 위임 | "이 문제 깊게 생각해봐" |
-| 트레이드오프 분석 | "A vs B 어떤게 나을까?" |
-| 디버깅 상담 | "이 에러 원인이 뭘까?" |
-| 세컨드 오피니언 | "내 분석 맞는지 확인해줘" |
-| 아키텍처 고민 | "이 구조로 가도 될까?" |
+## Prompt structure
 
-## 프롬프트 작성법
-
-### 핵심 원칙
-1. **Codex는 현재 대화를 모름** — 필요한 컨텍스트를 모두 포함
-2. **구체적으로** — 막연한 질문 대신 판단 기준 제시
-3. **형식 지정** — 원하는 응답 포맷을 명시
-
-### 템플릿
+Codex has zero knowledge of the current conversation. Include all relevant context — project details, tech stack, constraints, and the specific code or decision under review. Be concrete about what you want evaluated.
 
 ```bash
-~/.claude/scripts/cx-review.sh 'Think deeply and thoroughly.
+~/.claude/scripts/cx-review.sh --lines 100 'Think deeply and thoroughly.
 
-[역할 또는 관점 지정]
+[Role or perspective]
 
-[질문 또는 요청]
+[Question or request]
 
 Context:
-- Project: [프로젝트 설명]
-- Tech stack: [기술 스택]
-- Constraints: [제약사항]
+- Project: [description]
+- Tech stack: [stack]
+- Constraints: [constraints]
 
-[구체적인 평가 기준 또는 관점]
+[Specific evaluation criteria]
 
 Be direct and critical. Respond concisely.'
 ```
 
-## 예시
+## Examples
 
-### 코드리뷰
+### Code review
 ```bash
-~/.claude/scripts/cx-review.sh 'Think deeply.
+$cx --lines 100 'Think deeply.
 You are a senior code reviewer. Review this code:
 
-[코드 또는 diff]
+[code or diff]
 
 Review for: correctness, design, performance, security.
-Format: 🔴 Critical / 🟡 Suggestion / 🟢 Good'
+Format: Critical / Suggestion / Good'
 ```
 
-### 설계 검증
+### Design validation
 ```bash
-~/.claude/scripts/cx-review.sh 'Think deeply.
+$cx --lines 100 'Think deeply.
 Validate this design:
 
-[설계 내용]
+[design details]
 
 1. Does it meet requirements?
 2. What edge cases are missed?
@@ -119,41 +97,38 @@ Validate this design:
 4. What could go wrong in production?'
 ```
 
-### 디버깅 상담
+### Debugging
 ```bash
-~/.claude/scripts/cx-review.sh 'Think deeply.
+$cx --lines 100 'Think deeply.
 Debug this issue:
 
-Error: [에러 메시지]
-Code: [관련 코드]
-Context: [재현 조건]
+Error: [error message]
+Code: [relevant code]
+Context: [reproduction steps]
 
-What are the most likely root causes? Rank by probability.'
+Most likely root causes? Rank by probability.'
 ```
 
-### 트레이드오프 분석
+### Tradeoff analysis
 ```bash
-~/.claude/scripts/cx-review.sh 'Think deeply.
+$cx --lines 150 'Think deeply.
 Compare these approaches:
 
-Option A: [설명]
-Option B: [설명]
+Option A: [description]
+Option B: [description]
 
-Context: [프로젝트 상황, 제약사항]
+Context: [project situation, constraints]
 
 Compare on: complexity, performance, maintainability, risk.
-Give a clear recommendation with reasoning.'
+Clear recommendation with reasoning.'
 ```
 
-## 출력이 잘렸을 때
+## If output is truncated
 
-```bash
-# 전체 출력 확인
-cat /tmp/cx-review-*.md
-```
+Full output is always saved to `/tmp/cx-review-*.md`. Use Read to access specific sections.
 
-## 규칙
+## Rules
 
-1. **항상 `cx-review.sh` 래퍼 사용** — raw codex exec 호출 금지
-2. **충분한 컨텍스트 포함** — Codex는 현재 대화를 모름
-3. **민감 정보 제외** — API 키, 비밀번호 등 제외
+1. Use `cx-review.sh` wrapper — raw `codex exec` wastes context
+2. Include full context — Codex has no conversation history
+3. Exclude sensitive data — no API keys or passwords

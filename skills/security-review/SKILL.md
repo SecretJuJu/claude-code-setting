@@ -1,6 +1,13 @@
 ---
 name: security-review
-description: Security code review for vulnerabilities. Use when asked to "security review", "find vulnerabilities", "check for security issues", "audit security", "OWASP review", or review code for injection, XSS, authentication, authorization, cryptography issues. Provides systematic review with confidence-based reporting.
+description: >-
+  Systematic security code review with confidence-based vulnerability reporting. Use this skill
+  when asked to "security review", "find vulnerabilities", "check for security issues", "audit
+  security", "OWASP review", or review code for injection, XSS, SSRF, authentication, authorization,
+  or cryptography issues. Also activate when the user says "보안 리뷰", "취약점 찾아줘", "보안
+  점검", or any request to evaluate code safety. Even a casual "이 코드 안전해?" should trigger
+  this skill. Provides systematic review that researches the full codebase context before reporting,
+  avoiding false positives from naive pattern matching.
 allowed-tools: Read, Grep, Glob, Bash, Task
 license: LICENSE
 ---

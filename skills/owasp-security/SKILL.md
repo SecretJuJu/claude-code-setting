@@ -1,6 +1,13 @@
 ---
 name: owasp-security
-description: Use when reviewing code for security vulnerabilities, implementing authentication/authorization, handling user input, or discussing web application security. Covers OWASP Top 10:2025, ASVS 5.0, and Agentic AI security (2026).
+description: >-
+  OWASP security best practices for code review, authentication, authorization, input handling,
+  and web application security. Covers OWASP Top 10:2025, ASVS 5.0, and Agentic AI security (2026).
+  Use this skill whenever writing or reviewing code that handles user input, authentication,
+  authorization, session management, cryptography, error handling, or external data. Also use when
+  the user asks about security best practices, wants to implement secure auth flows, or mentions
+  OWASP, security hardening, or vulnerability prevention. Even if the user just says "이거 보안
+  괜찮아?" or "secure this", this skill should activate to provide the relevant security checklist.
 ---
 
 # OWASP Security Best Practices Skill

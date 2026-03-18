@@ -1,28 +1,35 @@
 ---
 name: codex-precommit
-description: |
-  커밋 전 staged diff를 Codex에게 보내 독립적 코드리뷰를 받습니다.
-  "커밋 전 리뷰", "precommit", "커밋해도 될까", "push 전 체크" 키워드에 반응합니다.
+description: >-
+  Send staged diff to Codex for independent pre-commit code review. Use this skill before committing
+  code, when the user says "커밋 전 리뷰", "precommit review", "커밋해도 될까", "push 전 체크",
+  "commit review", "pre-commit check", or asks whether their changes are ready to commit.
+  Also activate when the user is about to commit and wants a final safety check, or says
+  "이거 커밋해도 돼?", "변경사항 확인해줘" before a git commit.
 allowed-tools: Bash, Read, Glob
 ---
 
 # Codex Pre-Commit Review
 
-커밋 전에 staged changes를 Codex에게 보내 독립적 리뷰를 받는 스킬입니다.
-다른 모델의 관점에서 내가 놓친 문제를 잡아냅니다.
+Gets an independent code review from Codex before committing. A different model catches different bugs — this is a safety net against shipping broken code.
 
-## 실행 흐름
+## Flow
 
-### Step 1: Diff 수집
+### Step 1: Collect the diff
+
+Prefer staged changes (what will actually be committed). Fall back to unstaged if nothing is staged.
+
 ```bash
-# staged changes가 있으면 staged, 없으면 unstaged
 DIFF=$(git diff --cached)
 if [ -z "$DIFF" ]; then
   DIFF=$(git diff)
 fi
 ```
 
-### Step 2: Codex에 리뷰 요청
+If both are empty, inform the user there's nothing to review and skip.
+
+### Step 2: Send to Codex
+
 ```bash
 ~/.claude/scripts/cx-review.sh --lines 100 "You are a senior code reviewer.
 Review this diff for bugs, security issues, and design problems.
@@ -36,21 +43,22 @@ Focus on:
 4. Breaking changes or backwards compatibility
 
 Format:
-🔴 CRITICAL: [must fix before commit]
-🟡 WARNING: [should consider]
-✅ APPROVED if no critical issues found
+CRITICAL: [must fix before commit]
+WARNING: [should consider]
+APPROVED if no critical issues found
 
 Be concise. Only flag real issues."
 ```
 
-### Step 3: 결과 처리
-- 🔴 CRITICAL 있으면 → 커밋 전에 수정
-- 🟡 WARNING만 있으면 → 사용자에게 판단 위임
-- ✅ APPROVED → 커밋 진행
+### Step 3: Act on results
 
-## 규칙
+- **CRITICAL found** → fix before committing
+- **WARNING only** → present to user for judgment
+- **APPROVED** → proceed with commit
 
-1. **cx-review.sh 래퍼 사용** — raw codex exec 금지
-2. **staged diff 우선** — staged가 없으면 unstaged diff 사용
-3. **diff가 없으면 스킵** — 변경사항 없으면 실행하지 않음
-4. **민감 정보 필터** — .env 내용이 diff에 포함되어 있으면 경고
+## Rules
+
+1. Use `cx-review.sh` wrapper — raw codex exec wastes context
+2. Staged diff first — fall back to unstaged only if staging is empty
+3. No diff = skip — don't run on an empty changeset
+4. Warn about sensitive data — if .env content appears in the diff, flag it before sending
