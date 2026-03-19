@@ -1,0 +1,24 @@
+{
+  "servers": [
+    {
+      "extensions": ["py", "pyi"],
+      "command": ["/Users/secretjuju/.nvm/versions/node/v22.17.1/bin/pyright-langserver", "--stdio"],
+      "rootDir": "."
+    },
+    {
+      "extensions": ["ts", "tsx", "js", "jsx", "mjs", "cjs"],
+      "command": ["/Users/secretjuju/.nvm/versions/node/v22.17.1/bin/typescript-language-server", "--stdio"],
+      "rootDir": "."
+    },
+    {
+      "extensions": ["go"],
+      "command": ["/Users/secretjuju/go/bin/gopls", "serve"],
+      "rootDir": "."
+    },
+    {
+      "extensions": ["rs"],
+      "command": ["/Users/secretjuju/.cargo/bin/rust-analyzer"],
+      "rootDir": "."
+    }
+  ]
+}
