@@ -1,7 +1,11 @@
 ---
-allowed-tools: Read(*), Write(*), Bash(*), Grep(*), Glob(*), LS(*)
-description: Create AI-assisted PR with automatic metadata analysis and population
-argument-hint: [--target-branch <branch>] [--title <title>]
+name: makeAIPR
+description: >-
+  Create an AI-assisted GitHub PR with automatically analyzed metadata (AI code ratio, acceptance
+  rate, rewrite count) and a generated PR body. Use this skill whenever the user asks to
+  "make a PR", "create PR", "PR 만들어", "AI PR 생성", "gh pr 만들어줘", or wants an ai-assisted
+  labeled pull request. Also activate when the user is ready to push and needs a PR created.
+allowed-tools: Read, Write, Bash, Grep, Glob
 ---
 
 # MAKE AI PR: CONTEXT-EFFICIENT PR CREATION
@@ -9,9 +13,7 @@ argument-hint: [--target-branch <branch>] [--title <title>]
 Create AI-assisted PRs with automatic contribution analysis.
 
 ## USAGE
-```
-/makeAIPR [--target-branch <branch>] [--title <title>]
-```
+Pass optional flags (`--target-branch <branch>`, `--title <title>`) as arguments.
 
 ---
 

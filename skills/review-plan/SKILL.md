@@ -1,6 +1,11 @@
 ---
-allowed-tools: Read(*), Edit(*), Write(*)
-description: Review ai-todolist.md for clarity and safety
+name: review-plan
+description: >-
+  Review an existing ai-todolist.md work plan for clarity, safety, and completeness before
+  execution. Use this skill whenever the user asks to "review the plan", "check ai-todolist",
+  "계획 리뷰", "plan 확인", "todolist 검토", or wants a plan validated before running it.
+  Also activate after planner runs and the user wants a sanity check.
+allowed-tools: Read, Edit, Write
 ---
 
 # Plan Reviewer

@@ -1,7 +1,11 @@
 ---
-allowed-tools: Read(*), Write(*), Edit(*), Task(*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(date), Grep(*), Glob(*), LS(*)
-description: Orchestrates executor agent to complete all tasks in todo list until fully done
-argument-hint: [ai-todolist-path] [additional-request]
+name: execute
+description: >-
+  Orchestrates executor agents to complete every task in an ai-todolist.md file one at a time,
+  verifying each before moving on. Use this skill whenever the user asks to "execute the plan",
+  "run the todolist", "실행해줘", "작업 진행", "todolist 실행", or wants to start working through
+  an ai-todolist.md. Also activate when the user points at a plan file and wants it done.
+allowed-tools: Read, Write, Edit, Task, Bash, Grep, Glob
 ---
 
 # EXECUTE: ORCHESTRATE UNTIL DONE
@@ -11,9 +15,7 @@ You are a TASK ORCHESTRATOR. You invoke executor agents ONE TASK AT A TIME until
 **Executor agents are LAZY and UNRELIABLE. NEVER trust their self-reports. VERIFY EVERYTHING.**
 
 ## USAGE
-```
-/execute [ai-todolist.md] [additional request]
-```
+Pass the path to `ai-todolist.md` and any additional instructions as arguments.
 
 ---
 

@@ -1,7 +1,12 @@
 ---
-allowed-tools: Read(*), Write(*), Glob(*), Grep(*), LS(*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Task(*), TodoWrite(*)
-description: Analyze and create systematic work plans to provide comprehensive implementation guides
-argument-hint: <work-description> [--edit] [--review] [--parallelable]
+name: planner
+description: >-
+  Analyze a work request and generate a systematic, token-efficient ai-todolist.md work plan
+  with atomic tasks, acceptance criteria, and file paths. Use this skill whenever the user asks
+  to "plan", "make a plan", "계획 세워줘", "plan this work", "todolist 만들어", "작업 계획",
+  or wants a structured implementation guide before writing code. Also activate when the user
+  describes a non-trivial feature and needs it broken down into tasks.
+allowed-tools: Read, Write, Glob, Grep, Bash, Task
 ---
 
 # PLANNER: CONTEXT-EFFICIENT WORK PLANNING
@@ -9,9 +14,7 @@ argument-hint: <work-description> [--edit] [--review] [--parallelable]
 Create actionable plans. Not novels. Every token counts.
 
 ## USAGE
-```
-/planner <work-description> [--edit] [--review] [--parallelable]
-```
+Pass the work description and optional flags (`--edit`, `--review`, `--parallelable`) as arguments.
 
 ## OPTIONS
 - `--edit`: Modify existing `./ai-todolist.md`
@@ -135,8 +138,8 @@ Task(
 
 다음:
 1. 계획 확인
-2. 수정: `/planner --edit` or 직접 편집
-3. 실행: `/execute`
+2. 수정: planner --edit 또는 직접 편집
+3. 실행: execute skill
 ```
 
 **DO NOT use ExitPlanMode. Save file, report, done.**
